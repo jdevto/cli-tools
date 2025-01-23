@@ -4,95 +4,34 @@ Command-line interface tools/scripts
 
 ## Table of Contents
 
-- [sync_github_repos.sh](#sync_github_repossh)
-- [install_aws_cli.sh](#install_aws_clish)
+- [sync_github_repos.sh](docs/sync_github_repos.md)
+- [install_aws_cli.sh](docs/install_aws_cli.md)
+- [install_aws_vault.sh](docs/install_aws_vault.md)
 
-## Scripts
+## Overview
 
-### sync_github_repos.sh
+This repository provides various command-line tools to streamline workflows.
 
-This script allows you to clone or update all repositories for a GitHub organization or user.
+Each script has its own documentation available in the `docs/` directory.
 
-#### Usage
+Refer to the respective files for detailed usage instructions:
 
-```bash
-./sync_github_repos.sh <GitHub_Entity> <Base_Directory>
-```
+- **[sync_github_repos.sh](docs/sync_github_repos.md)**: Clone or update repositories for a GitHub organization or user.
+- **[install_aws_cli.sh](docs/install_aws_cli.md)**: Install or uninstall the AWS CLI on supported Linux distributions.
+- **[install_aws_vault.sh](docs/install_aws_vault.md)**: Manage AWS Vault installation and configuration.
 
-- **GitHub_Entity**: The name of the GitHub organization or user.
-- **Base_Directory**: The directory where repositories will be stored.
+## Usage
 
-#### Example Usage
-
-To clone or update all repositories for a GitHub organization `jdevto` into the current directory:
+Each script follows a simple command format. Navigate to the script’s documentation for full details.
 
 ```bash
-./sync_github_repos.sh jdevto .
+./<script_name>.sh [options]
 ```
 
-To sync repositories into a specific directory:
+## Installation & Setup
 
-```bash
-./sync_github_repos.sh jdevto /path/to/directory
-```
+Ensure you have the required dependencies installed. See each script's documentation for details on additional requirements.
 
-#### Running sync_github_repos.sh Without Cloning
+## Contribution
 
-```bash
-bash <(curl -s https://raw.githubusercontent.com/jdevto/cli-tools/main/scripts/sync_github_repos.sh) jdevto .
-```
-
-### install_aws_cli.sh
-
-This script installs or uninstalls the AWS CLI on Ubuntu, Red Hat, or Fedora-based systems. The default operation is to install the AWS CLI if no arguments are provided.
-
-#### Installation & Usage
-
-```bash
-./install_aws_cli.sh [install|uninstall]
-```
-
-- **install** (default): Installs the latest AWS CLI version.
-- **uninstall**: Removes the AWS CLI from the system.
-
-#### Installation Example
-
-To install AWS CLI:
-
-```bash
-./install_aws_cli.sh
-```
-
-To uninstall AWS CLI:
-
-```bash
-./install_aws_cli.sh uninstall
-```
-
-#### Running install_aws_cli.sh Without Cloning
-
-```bash
-bash <(curl -s https://raw.githubusercontent.com/jdevto/cli-tools/main/scripts/install_aws_cli.sh) install
-```
-
-#### Verification
-
-After installation, check the AWS CLI version:
-
-```bash
-aws --version
-```
-
-#### Supported Operating Systems
-
-- Ubuntu (uses `apt` for package management)
-- Red Hat / Fedora (uses `dnf` for package management)
-
-#### Error Handling
-
-- If AWS CLI is already installed, the script will skip reinstallation.
-- If an unsupported OS is detected, the script exits with an error message.
-
-#### Cleanup
-
-- Temporary installation files are automatically removed after execution.
+Feel free to contribute by submitting issues or pull requests.
