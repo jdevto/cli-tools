@@ -20,33 +20,35 @@ install_kafka() {
     fi
 }
 
-get_latest_version() {
+get_latest_version_and_url() {
     echo "Fetching the latest AWS MSK IAM Auth version..."
-    latest_version=$(curl -s "$MSK_AUTH_URL" | jq -r .tag_name)
+    response=$(curl -s "$MSK_AUTH_URL")
 
-    if [ -z "$latest_version" ] || [ "$latest_version" == "null" ]; then
-        echo "Failed to fetch the latest version. Exiting."
+    jar_url=$(echo "$response" | jq -r '.assets[] | select(.name | test("aws-msk-iam-auth-.*-all.jar$")) | .browser_download_url')
+
+    if [[ -z "$jar_url" || "$jar_url" == "null" ]]; then
+        echo "Failed to fetch the latest JAR URL. Exiting."
         exit 1
     fi
-    echo "Latest version: $latest_version"
+
+    echo "JAR URL: $jar_url"
 }
 
 install_msk_iam_auth() {
     install_kafka
-    get_latest_version
+    get_latest_version_and_url
 
     if [ ! -d "$LIBS_DIR" ]; then
         mkdir -p "$LIBS_DIR"
     fi
 
-    JAR_FILE="$LIBS_DIR/aws-msk-iam-auth-$latest_version-all.jar"
-    JAR_URL="https://github.com/aws/aws-msk-iam-auth/releases/download/$latest_version/aws-msk-iam-auth-$latest_version-all.jar"
+    JAR_FILE="$LIBS_DIR/$(basename "$jar_url")"
 
     if [ -f "$JAR_FILE" ]; then
         echo "AWS MSK IAM Auth JAR is already up-to-date."
     else
-        echo "Downloading AWS MSK IAM Auth JAR (version $latest_version)..."
-        sudo curl -L -o "$JAR_FILE" "$JAR_URL"
+        echo "Downloading AWS MSK IAM Auth JAR..."
+        sudo curl -L -o "$JAR_FILE" "$jar_url"
         echo "JAR installed successfully: $JAR_FILE"
     fi
 
@@ -64,22 +66,9 @@ EOF
     fi
 
     if [ -f "$TOOLS_LOG4J_CONFIG" ]; then
-        CURRENT_LOG_LEVEL=$(grep -Eo "INFO|WARN|ERROR|DEBUG" "$TOOLS_LOG4J_CONFIG" | head -1)
-
         if [ "$ENABLE_DEBUG_LOGS" = true ]; then
-            if [ "$CURRENT_LOG_LEVEL" != "DEBUG" ]; then
-                sed -i.bak "s/$CURRENT_LOG_LEVEL/DEBUG/g" "$TOOLS_LOG4J_CONFIG"
-                echo "Log level changed from $CURRENT_LOG_LEVEL to DEBUG."
-            else
-                echo "Log level is already set to DEBUG. No changes needed."
-            fi
-        else
-            if grep -q "DEBUG" "$TOOLS_LOG4J_CONFIG"; then
-                sed -i.bak "s/DEBUG/$CURRENT_LOG_LEVEL/g" "$TOOLS_LOG4J_CONFIG"
-                echo "Log level reset to $CURRENT_LOG_LEVEL."
-            else
-                echo "Log level remains unchanged ($CURRENT_LOG_LEVEL)."
-            fi
+            sed -i.bak "s/INFO/DEBUG/g; s/WARN/DEBUG/g; s/ERROR/DEBUG/g" "$TOOLS_LOG4J_CONFIG"
+            echo "Log level changed to DEBUG."
         fi
     else
         echo "Warning: Kafka log4j configuration file not found. Skipping log level update."
@@ -103,11 +92,6 @@ uninstall_msk_iam_auth() {
     else
         echo "IAM authentication properties file does not exist. Skipping removal."
     fi
-
-    if [ -f "$TOOLS_LOG4J_CONFIG.bak" ]; then
-        sudo rm -f "$TOOLS_LOG4J_CONFIG.bak"
-        echo "Kafka log configuration backup removed."
-    fi
 }
 
 usage() {
@@ -119,33 +103,19 @@ usage() {
 ACTION=""
 while [[ $# -gt 0 ]]; do
     case "$1" in
-    install)
-        ACTION="install"
-        shift
-        ;;
-    uninstall)
-        ACTION="uninstall"
-        shift
-        ;;
-    --enable-debug-logs)
-        ENABLE_DEBUG_LOGS=true
-        shift
-        ;;
-    *)
-        usage
-        ;;
+    install) ACTION="install" ;;
+    uninstall) ACTION="uninstall" ;;
+    --enable-debug-logs) ENABLE_DEBUG_LOGS=true ;;
+    *) usage ;;
     esac
+    shift
 done
 
-if [ -z "$ACTION" ]; then
-    install_msk_iam_auth
-elif [ "$ACTION" == "install" ]; then
-    install_msk_iam_auth
-elif [ "$ACTION" == "uninstall" ]; then
-    uninstall_msk_iam_auth
-else
-    usage
-fi
+case "$ACTION" in
+install) install_msk_iam_auth ;;
+uninstall) uninstall_msk_iam_auth ;;
+*) usage ;;
+esac
 
 if [ "$ACTION" != "uninstall" ]; then
     echo "Operation completed. Verify with: ls $LIBS_DIR/"
