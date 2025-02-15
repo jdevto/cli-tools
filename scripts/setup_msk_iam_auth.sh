@@ -67,8 +67,19 @@ EOF
 
     if [ -f "$TOOLS_LOG4J_CONFIG" ]; then
         if [ "$ENABLE_DEBUG_LOGS" = true ]; then
-            sed -i.bak "s/INFO/DEBUG/g; s/WARN/DEBUG/g; s/ERROR/DEBUG/g" "$TOOLS_LOG4J_CONFIG"
+            sed -i -E \
+                -e "s/^(.+)INFO(.+)$/\1DEBUG\2/" \
+                -e "s/^(.+)WARN(.+)$/\1DEBUG\2/" \
+                -e "s/^(.+)ERROR(.+)$/\1DEBUG\2/" \
+                "$TOOLS_LOG4J_CONFIG"
             echo "Log level changed to DEBUG."
+        else
+            sed -i -E \
+                -e "s/^(.+)DEBUG(.+)INFO/\1INFO\2/" \
+                -e "s/^(.+)DEBUG(.+)WARN/\1WARN\2/" \
+                -e "s/^(.+)DEBUG(.+)ERROR/\1ERROR\2/" \
+                "$TOOLS_LOG4J_CONFIG"
+            echo "Log level restored to default."
         fi
     else
         echo "Warning: Kafka log4j configuration file not found. Skipping log level update."
