@@ -24,9 +24,11 @@ install_dependencies() {
     if command -v apt &>/dev/null; then
         sudo apt update && sudo apt install -y ruby wget curl jq awscli
     elif command -v yum &>/dev/null; then
-        sudo yum install -y ruby wget curl jq aws-cli
+        sudo yum install -y ruby wget jq aws-cli
+        sudo yum install -y curl --allowerasing
     elif command -v dnf &>/dev/null; then
-        sudo dnf install -y ruby wget curl jq aws-cli
+        sudo dnf install -y ruby wget jq aws-cli
+        sudo dnf install -y curl --allowerasing
     else
         echo "Unsupported package manager. Exiting."
         exit 1
