@@ -4,10 +4,13 @@ set -e
 
 # Default AWS Region (Can be overridden by CLI args or env var)
 AWS_REGION="${AWS_REGION:-ap-southeast-2}"
+CONFIG_FILE_INPUT=""
+CONFIGURE=false
+ACTION=""
 
 # CloudWatch Agent package
 CLOUDWATCH_AGENT_PACKAGE="amazon-cloudwatch-agent"
-CONFIG_FILE="/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json"
+DEFAULT_CONFIG_FILE="/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json"
 
 cleanup() {
     rm -f /tmp/amazon-cloudwatch-agent.rpm /tmp/amazon-cloudwatch-agent.deb
@@ -23,16 +26,45 @@ detect_os() {
     fi
 }
 
+detect_instance_id() {
+    if curl -s --connect-timeout 2 http://169.254.169.254/latest/api/token >/dev/null 2>&1; then
+        TOKEN=$(curl -sX PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+        INSTANCE_ID=$(curl -sH "X-aws-ec2-metadata-token: $TOKEN" "http://169.254.169.254/latest/meta-data/instance-id")
+    elif curl -s --connect-timeout 2 http://169.254.169.254/latest/meta-data/instance-id >/dev/null 2>&1; then
+        INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+    else
+        INSTANCE_ID=$(hostname)
+    fi
+
+    if [ -z "$INSTANCE_ID" ]; then
+        INSTANCE_ID="fallback-instance-id"
+    fi
+
+    echo "$INSTANCE_ID"
+}
+
 parse_args() {
+    if [[ "$#" -eq 0 ]]; then
+        echo "Error: No action specified. Use 'install' or 'uninstall'."
+        usage
+    fi
+
+    ACTION="$1"
+    shift
+
     while [[ "$#" -gt 0 ]]; do
         case "$1" in
         --region)
             AWS_REGION="$2"
             shift 2
             ;;
-        install | uninstall)
-            ACTION="$1"
+        --configure)
+            CONFIGURE=true
             shift
+            ;;
+        --config)
+            CONFIG_FILE_INPUT="$2"
+            shift 2
             ;;
         *)
             echo "Unknown argument: $1"
@@ -55,9 +87,14 @@ is_cloudwatch_agent_installed() {
 }
 
 configure_cloudwatch_agent() {
-    echo "Configuring CloudWatch Unified Agent for region $AWS_REGION..."
+    CONFIG_FILE="/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json"
 
-    sudo tee "$CONFIG_FILE" >/dev/null <<EOF
+    INSTANCE_ID=$(detect_instance_id)
+    echo "Configuring CloudWatch Unified Agent for region $AWS_REGION..."
+    echo "Using instance identifier: $INSTANCE_ID"
+    echo "Writing configuration to $CONFIG_FILE"
+
+    tee "$CONFIG_FILE" >/dev/null <<EOF
 {
     "agent": {
         "metrics_collection_interval": 60,
@@ -71,7 +108,7 @@ configure_cloudwatch_agent() {
                     {
                         "file_path": "/var/log/messages",
                         "log_group_name": "/var/log/messages",
-                        "log_stream_name": "{instance_id}"
+                        "log_stream_name": "$INSTANCE_ID"
                     }
                 ]
             }
@@ -80,10 +117,23 @@ configure_cloudwatch_agent() {
 }
 EOF
 
+    echo "Setting correct permissions..."
+    chown root:root "$CONFIG_FILE"
+    chmod 644 "$CONFIG_FILE"
+
+    echo "Cleaning up old CloudWatch Agent configurations..."
+    CONFIG_DIR="/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.d"
+    if [ -d "$CONFIG_DIR" ]; then
+        if [ -f "$CONFIG_DIR/default" ]; then
+            echo "Removing old default config..."
+            rm -f "$CONFIG_DIR/default"
+        fi
+    fi
+
     echo "Applying CloudWatch Unified Agent configuration..."
-    sudo amazon-cloudwatch-agent-ctl -a stop
-    sudo amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:$CONFIG_FILE -s
-    sudo systemctl restart amazon-cloudwatch-agent
+    amazon-cloudwatch-agent-ctl -a stop
+    amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:$CONFIG_FILE -s
+    systemctl restart amazon-cloudwatch-agent
 }
 
 install_amazon_linux() {
@@ -95,7 +145,7 @@ install_amazon_linux() {
     fi
 
     echo "Installing CloudWatch Unified Agent on Amazon Linux..."
-    sudo yum install -y "$CLOUDWATCH_AGENT_PACKAGE"
+    yum install -y "$CLOUDWATCH_AGENT_PACKAGE"
 
     configure_cloudwatch_agent
     echo "CloudWatch Unified Agent installed and configured for region $AWS_REGION."
@@ -111,11 +161,11 @@ install_ubuntu_centos_rhel() {
 
     echo "Installing CloudWatch Unified Agent..."
     if command -v apt &>/dev/null; then
-        sudo apt update && sudo apt install -y amazon-cloudwatch-agent
+        apt update && apt install -y amazon-cloudwatch-agent
     elif command -v yum &>/dev/null; then
-        sudo yum install -y amazon-cloudwatch-agent
+        yum install -y amazon-cloudwatch-agent
     elif command -v dnf &>/dev/null; then
-        sudo dnf install -y amazon-cloudwatch-agent
+        dnf install -y amazon-cloudwatch-agent
     else
         echo "Unsupported package manager. Exiting."
         exit 1
@@ -132,15 +182,15 @@ uninstall_cloudwatch_agent() {
     fi
 
     echo "Uninstalling CloudWatch Unified Agent..."
-    sudo systemctl stop amazon-cloudwatch-agent || true
-    sudo systemctl disable amazon-cloudwatch-agent || true
+    systemctl stop amazon-cloudwatch-agent || true
+    systemctl disable amazon-cloudwatch-agent || true
 
     if command -v apt &>/dev/null; then
-        sudo apt remove -y amazon-cloudwatch-agent
+        apt remove -y amazon-cloudwatch-agent
     elif command -v yum &>/dev/null || command -v dnf &>/dev/null; then
-        sudo yum remove -y amazon-cloudwatch-agent || sudo dnf remove -y amazon-cloudwatch-agent
+        yum remove -y amazon-cloudwatch-agent || dnf remove -y amazon-cloudwatch-agent
     elif command -v rpm &>/dev/null && rpm -q amazon-cloudwatch-agent &>/dev/null; then
-        sudo rpm -e amazon-cloudwatch-agent
+        rpm -e amazon-cloudwatch-agent
     else
         echo "Unsupported package manager. Skipping CloudWatch agent removal."
     fi
@@ -149,7 +199,7 @@ uninstall_cloudwatch_agent() {
 }
 
 usage() {
-    echo "Usage: $0 [install|uninstall] [--region <AWS_REGION>]"
+    echo "Usage: $0 [install|uninstall] [--region <AWS_REGION>] [--configure] [--config <file>]"
     exit 1
 }
 

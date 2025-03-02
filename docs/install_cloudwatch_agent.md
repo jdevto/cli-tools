@@ -1,16 +1,17 @@
-# **install_cloudwatch_agent.sh**
+# **install\_cloudwatch\_agent.sh**
 
 This script installs, uninstalls, or configures the AWS CloudWatch Unified Agent on **Ubuntu, Red Hat, Fedora, Debian, CentOS, and Amazon Linux**.
 
 ## **Usage**
 
 ```bash
-./install_cloudwatch_agent.sh [install|uninstall] [--region <AWS_REGION>]
+./install_cloudwatch_agent.sh [install|uninstall] [--region <AWS_REGION>] [--configure]
 ```
 
-- **install** (default): Installs and configures the AWS CloudWatch Unified Agent.
+- **install** (default): Installs the CloudWatch Unified Agent.
 - **uninstall**: Removes the AWS CloudWatch Unified Agent from the system.
 - **--region <AWS_REGION>**: (Optional) Sets the AWS region for CloudWatch (default: `ap-southeast-2`).
+- **--configure**: (Optional) Configures the CloudWatch Agent after installation.
 
 ## **Example Usage**
 
@@ -26,6 +27,14 @@ This script installs, uninstalls, or configures the AWS CloudWatch Unified Agent
 ./install_cloudwatch_agent.sh install --region ap-southeast-1
 ```
 
+### **Install and Configure CloudWatch Unified Agent**
+
+```bash
+./install_cloudwatch_agent.sh install --region ap-southeast-1 --configure
+```
+
+This will install and configure the CloudWatch Agent in one step.
+
 ### **Uninstall the CloudWatch Unified Agent**
 
 ```bash
@@ -40,7 +49,7 @@ bash <(curl -s https://raw.githubusercontent.com/jdevto/cli-tools/main/scripts/i
 
 ## **Verification**
 
-After installation, check the CloudWatch agent status:
+After installation or configuration, check the CloudWatch agent status:
 
 ```bash
 systemctl status amazon-cloudwatch-agent
@@ -69,6 +78,7 @@ This file contains the AWS region and logging configuration.
 - If the **CloudWatch agent is already installed**, the script **skips reinstallation**.
 - If an **unsupported OS** is detected, the script exits with an error message.
 - If **AWS credentials** are missing, CloudWatch may fail to send logs.
+- If **CloudWatch Agent configuration is missing**, `--configure` will apply default settings.
 
 ## **Cleanup**
 
