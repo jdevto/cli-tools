@@ -27,12 +27,19 @@ detect_os() {
 }
 
 detect_instance_id() {
-    if curl -s --connect-timeout 2 http://169.254.169.254/latest/api/token >/dev/null 2>&1; then
-        TOKEN=$(curl -sX PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
-        INSTANCE_ID=$(curl -sH "X-aws-ec2-metadata-token: $TOKEN" "http://169.254.169.254/latest/meta-data/instance-id")
-    elif curl -s --connect-timeout 2 http://169.254.169.254/latest/meta-data/instance-id >/dev/null 2>&1; then
-        INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
-    else
+    TOKEN=$(curl -sX PUT "http://169.254.169.254/latest/api/token" \
+        -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" 2>/dev/null)
+
+    if [ -n "$TOKEN" ]; then
+        INSTANCE_ID=$(curl -sH "X-aws-ec2-metadata-token: $TOKEN" \
+            "http://169.254.169.254/latest/meta-data/instance-id" 2>/dev/null)
+    fi
+
+    if [ -z "$INSTANCE_ID" ]; then
+        INSTANCE_ID=$(curl -s --connect-timeout 2 http://169.254.169.254/latest/meta-data/instance-id 2>/dev/null)
+    fi
+
+    if [ -z "$INSTANCE_ID" ]; then
         INSTANCE_ID=$(hostname)
     fi
 
@@ -87,14 +94,21 @@ is_cloudwatch_agent_installed() {
 }
 
 configure_cloudwatch_agent() {
-    CONFIG_FILE="/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json"
+    CONFIG_DIR="/opt/aws/amazon-cloudwatch-agent/etc"
+    CONFIG_FILE="$CONFIG_DIR/amazon-cloudwatch-agent.json"
 
-    INSTANCE_ID=$(detect_instance_id)
-    echo "Configuring CloudWatch Unified Agent for region $AWS_REGION..."
-    echo "Using instance identifier: $INSTANCE_ID"
-    echo "Writing configuration to $CONFIG_FILE"
+    if [ -n "$CONFIG_FILE_INPUT" ]; then
+        echo "Using provided configuration file: $CONFIG_FILE_INPUT"
+        sudo cp "$CONFIG_FILE_INPUT" "$CONFIG_FILE"
+    else
+        INSTANCE_ID=$(detect_instance_id)
+        LOG_GROUP_NAME="/aws/ec2/$INSTANCE_ID"
 
-    tee "$CONFIG_FILE" >/dev/null <<EOF
+        echo "Configuring CloudWatch Unified Agent for region $AWS_REGION..."
+        echo "Using instance identifier: $INSTANCE_ID"
+        echo "Writing configuration to $CONFIG_FILE"
+
+        tee "$CONFIG_FILE" >/dev/null <<EOF
 {
     "agent": {
         "metrics_collection_interval": 60,
@@ -107,7 +121,7 @@ configure_cloudwatch_agent() {
                 "collect_list": [
                     {
                         "file_path": "/var/log/messages",
-                        "log_group_name": "/var/log/messages",
+                        "log_group_name": "$LOG_GROUP_NAME",
                         "log_stream_name": "$INSTANCE_ID"
                     }
                 ]
@@ -116,24 +130,19 @@ configure_cloudwatch_agent() {
     }
 }
 EOF
-
-    echo "Setting correct permissions..."
-    chown root:root "$CONFIG_FILE"
-    chmod 644 "$CONFIG_FILE"
-
-    echo "Cleaning up old CloudWatch Agent configurations..."
-    CONFIG_DIR="/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.d"
-    if [ -d "$CONFIG_DIR" ]; then
-        if [ -f "$CONFIG_DIR/default" ]; then
-            echo "Removing old default config..."
-            rm -f "$CONFIG_DIR/default"
-        fi
     fi
 
+    echo "Setting correct permissions..."
+    sudo chown root:root "$CONFIG_FILE"
+    sudo chmod 644 "$CONFIG_FILE"
+    sudo chown -R root:root "$CONFIG_DIR"
+
     echo "Applying CloudWatch Unified Agent configuration..."
-    amazon-cloudwatch-agent-ctl -a stop
-    amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:$CONFIG_FILE -s
-    systemctl restart amazon-cloudwatch-agent
+    sudo amazon-cloudwatch-agent-ctl -a stop
+    sudo amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:$CONFIG_FILE -s
+    sudo systemctl restart amazon-cloudwatch-agent
+
+    echo "CloudWatch Unified Agent restarted successfully."
 }
 
 install_amazon_linux() {
