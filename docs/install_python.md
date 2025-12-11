@@ -14,6 +14,8 @@ This script installs or uninstalls Python on Linux, macOS, and Windows systems. 
 ## Optional Environment Variables
 
 - **PYTHON_VERSION**: Pin specific version (e.g., `3.12` or `3.12.5`) or leave empty for latest
+- **PYTHON_SET_ALIASES**: Set aliases for `python` and `python3` to point to the installed version (default: `true`)
+  - Set to `false`, `0`, or `no` to disable alias creation
 
 ## Example Usage
 
@@ -35,6 +37,12 @@ To install a specific full version:
 PYTHON_VERSION=3.11.5 ./install_python.sh install
 ```
 
+To install without setting aliases:
+
+```bash
+PYTHON_SET_ALIASES=false ./install_python.sh install
+```
+
 To uninstall Python:
 
 ```bash
@@ -43,23 +51,50 @@ To uninstall Python:
 
 ## Running Without Cloning
 
+To install the latest Python version:
+
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/jdevto/cli-tools/main/scripts/install_python.sh) install
 ```
+
+To install a specific version:
+
+```bash
+PYTHON_VERSION=3.13 bash <(curl -s https://raw.githubusercontent.com/jdevto/cli-tools/main/scripts/install_python.sh) install
+```
+
+To install without setting aliases:
+
+```bash
+PYTHON_SET_ALIASES=false bash <(curl -s https://raw.githubusercontent.com/jdevto/cli-tools/main/scripts/install_python.sh) install
+```
+
+**Note**: On RHEL/CentOS/Fedora systems, installing a specific Python version (e.g., `python3.13`) creates a versioned binary (`python3.13`) rather than replacing `python3`. The script automatically creates aliases for `python` and `python3` to point to the installed version (unless `PYTHON_SET_ALIASES=false`).
 
 ## Verification
 
 After installation, check the Python version:
 
+**If aliases are enabled (default)**: The `python` and `python3` commands will point to the installed version:
+
+```bash
+python --version
+python3 --version
+```
+
+**On Linux (RHEL/CentOS/Fedora) without aliases**: When installing a specific version (e.g., `python3.13`), use the versioned binary:
+
+```bash
+python3.13 --version
+```
+
+**On Linux (Ubuntu/Debian) or macOS**: The default `python3` command should work:
+
 ```bash
 python3 --version
 ```
 
-Test Python functionality:
-
-```bash
-python3 --help
-```
+**Note**: After installation with aliases enabled, restart your shell or run `source ~/.bashrc` (or `source ~/.zshrc`) for aliases to take effect.
 
 ## Supported Operating Systems
 
@@ -106,6 +141,7 @@ python3 --help
 - Verifies installation after completion
 - Validates Ubuntu-only requirements for deadsnakes PPA
 - Smart shell detection for pyenv configuration on macOS
+- **Automatic alias creation**: Creates `python` and `python3` aliases pointing to the installed version (configurable via `PYTHON_SET_ALIASES`)
 
 ## Error Handling
 
@@ -173,6 +209,12 @@ The script is idempotent and will:
    - Consider using `pyenv` for better version management
    - Check available versions in your distribution's repositories
 
+6. **Aliases not working**:
+   - Restart your shell or run `source ~/.bashrc` (or `source ~/.zshrc`)
+   - Check if aliases were added: `grep "alias python" ~/.bashrc` (or `~/.zshrc`)
+   - Verify the target binary exists: `which python3.13` (or your installed version)
+   - Check if `PYTHON_SET_ALIASES` was set to false during installation
+
 ### Logs and Debugging
 
 - **Check installed version**: `python3 --version`
@@ -227,9 +269,12 @@ pyenv global 3.12.5
 
 - System Python (usually `python3`) may be a system dependency and should not be removed
 - The script installs additional Python versions alongside system Python
+- **Important**: On RHEL/CentOS/Fedora, installing a specific version (e.g., `python3.13`) creates a versioned binary (`python3.13`) rather than replacing `python3`. The script automatically creates aliases to make `python` and `python3` point to the installed version.
+- **Aliases**: By default, the script creates aliases in your shell profile (`.bashrc`, `.zshrc`, or `.bash_profile`) so that `python` and `python3` point to the installed version. Set `PYTHON_SET_ALIASES=false` to disable this behavior.
 - On macOS, the script uses `pyenv` for better version management
 - Windows support is limited; manual installation is recommended
 - The script intelligently handles sudo - works when running as root or with sudo privileges
 - **Uninstall warning**: Removing Python packages can affect system tools on non-container systems
 - Deadsnakes PPA is Ubuntu-only; Debian users should use pyenv or build from source
 - Shell integration for pyenv is only added if not already present (prevents duplicates)
+- Aliases are automatically updated when reinstalling or installing a different version
