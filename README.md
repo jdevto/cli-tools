@@ -17,6 +17,7 @@ Command-line interface tools/scripts
 - [install_ssm_plugin.sh](docs/install_ssm_plugin.md)
 - [install_terraform.sh](docs/install_terraform.md)
 - [install_tfenv.sh](docs/install_tfenv.md)
+- [install_vscode_server.sh](docs/install_vscode_server.md)
 - [manage_kafka.sh](docs/manage_kafka.md)
 - [setup_msk_iam_auth.sh](docs/setup_msk_iam_auth.md)
 - [sync_github_repos.sh](docs/sync_github_repos.md)
@@ -42,6 +43,7 @@ Refer to the respective files for detailed usage instructions:
 - **[install_ssm_plugin.sh](docs/install_ssm_plugin.md)**: Install or uninstall the AWS SSM Session Manager Plugin for remote EC2 access.
 - **[install_terraform.sh](docs/install_terraform.md)**: Install or uninstall Terraform on supported Linux distributions.
 - **[install_tfenv.sh](docs/install_tfenv.md)**: Install or uninstall `tfenv`, a version manager for Terraform.
+- **[install_vscode_server.sh](docs/install_vscode_server.md)**: Install or uninstall VS Code Server for remote browser-based code editing.
 - **[manage_kafka.sh](docs/manage_kafka.md)**: Manage Kafka topics, consumers, and producers.
 - **[setup_msk_iam_auth.sh](docs/setup_msk_iam_auth.md)**: Configure IAM authentication for Amazon MSK.
 - **[sync_github_repos.sh](docs/sync_github_repos.md)**: Clone or update repositories for a GitHub organization or user.
