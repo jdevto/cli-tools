@@ -13,6 +13,7 @@ Command-line interface tools/scripts
 - [install_kubectl.sh](docs/install_kubectl.md)
 - [install_loki.sh](docs/install_loki.md)
 - [install_promtail.sh](docs/install_promtail.md)
+- [install_ssm_agent.sh](docs/install_ssm_agent.md)
 - [install_ssm_plugin.sh](docs/install_ssm_plugin.md)
 - [install_terraform.sh](docs/install_terraform.md)
 - [install_tfenv.sh](docs/install_tfenv.md)
@@ -37,6 +38,7 @@ Refer to the respective files for detailed usage instructions:
 - **[install_kubectl.sh](docs/install_kubectl.md)**: Install or uninstall `kubectl` on a Linux system.
 - **[install_loki.sh](docs/install_loki.md)**: Install or uninstall Grafana Loki log aggregation system.
 - **[install_promtail.sh](docs/install_promtail.md)**: Install or uninstall Grafana Promtail log shipper with flexible configuration options.
+- **[install_ssm_agent.sh](docs/install_ssm_agent.md)**: Install or uninstall the AWS Systems Manager (SSM) Agent on various Linux distributions, macOS, and Windows.
 - **[install_ssm_plugin.sh](docs/install_ssm_plugin.md)**: Install or uninstall the AWS SSM Session Manager Plugin for remote EC2 access.
 - **[install_terraform.sh](docs/install_terraform.md)**: Install or uninstall Terraform on supported Linux distributions.
 - **[install_tfenv.sh](docs/install_tfenv.md)**: Install or uninstall `tfenv`, a version manager for Terraform.
