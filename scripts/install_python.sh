@@ -3,6 +3,7 @@
 set -e
 
 PYTHON_VERSION="${PYTHON_VERSION:-}"  # Optional: pin version (e.g., 3.12), otherwise uses latest
+PYTHON_SET_ALIASES="${PYTHON_SET_ALIASES:-true}"  # Set aliases for python and python3 (default: true)
 TMP_DIR="/tmp/python-install"
 
 cleanup() {
@@ -198,16 +199,24 @@ install_python_linux() {
     fi
 }
 
+get_shell_rc_file() {
+    if [ -n "$ZSH_VERSION" ]; then
+        echo "${HOME}/.zshrc"
+    elif [ -n "$BASH_VERSION" ]; then
+        # Prefer .bashrc over .bash_profile for interactive shells
+        if [ -f "${HOME}/.bashrc" ]; then
+            echo "${HOME}/.bashrc"
+        else
+            echo "${HOME}/.bash_profile"
+        fi
+    else
+        echo "${HOME}/.profile"
+    fi
+}
+
 configure_pyenv_shell_integration() {
     local shell_rc
-
-    if [ -n "$ZSH_VERSION" ]; then
-        shell_rc="${HOME}/.zshrc"
-    elif [ -n "$BASH_VERSION" ]; then
-        shell_rc="${HOME}/.bash_profile"
-    else
-        shell_rc="${HOME}/.profile"
-    fi
+    shell_rc=$(get_shell_rc_file)
 
     if ! grep -q 'PYENV_ROOT="$HOME/.pyenv"' "$shell_rc" 2>/dev/null; then
         {
@@ -216,6 +225,165 @@ configure_pyenv_shell_integration() {
             echo 'eval "$(pyenv init -)"'
         } >> "$shell_rc"
     fi
+}
+
+find_latest_python_binary() {
+    local platform="$1"
+    local target_version="$2"
+
+    if [ "$platform" = "linux" ]; then
+        # On Linux, find the highest versioned python3.x binary
+        local latest_binary=""
+        local latest_major_minor=""
+
+        # Check common locations for versioned binaries
+        # Try versions from 3.20 down to 3.0
+        local target_major_minor=""
+        if [ -n "$target_version" ]; then
+            target_major_minor=$(normalize_version "$target_version")
+        fi
+
+        # Check for versioned binaries (python3.20 down to python3.0)
+        for major in {20..0}; do
+            local test_binary="python3.${major}"
+            if command -v "$test_binary" >/dev/null 2>&1; then
+                local ver
+                ver=$(get_installed_python_version "$test_binary")
+                if [ "$ver" != "none" ]; then
+                    local ver_major_minor
+                    ver_major_minor=$(normalize_version "$ver")
+
+                    if [ -z "$target_major_minor" ]; then
+                        # No target version, use latest found
+                        if [ -z "$latest_binary" ] || [ "$(printf '%s\n' "$ver_major_minor" "$latest_major_minor" | sort -V | tail -1)" = "$ver_major_minor" ]; then
+                            latest_binary="$test_binary"
+                            latest_major_minor="$ver_major_minor"
+                        fi
+                    else
+                        # Target version specified, use matching version
+                        if [ "$ver_major_minor" = "$target_major_minor" ]; then
+                            latest_binary="$test_binary"
+                            latest_major_minor="$ver_major_minor"
+                            break
+                        fi
+                    fi
+                fi
+            fi
+        done
+
+        if [ -n "$latest_binary" ]; then
+            echo "$latest_binary"
+            return 0
+        fi
+
+        # Fallback to python3 if no versioned binary found
+        if command -v python3 >/dev/null 2>&1; then
+            echo "python3"
+            return 0
+        fi
+    elif [ "$platform" = "darwin" ]; then
+        # On macOS with pyenv, use python
+        if command -v pyenv >/dev/null 2>&1 && command -v python >/dev/null 2>&1; then
+            echo "python"
+            return 0
+        fi
+        # Fallback to python3
+        if command -v python3 >/dev/null 2>&1; then
+            echo "python3"
+            return 0
+        fi
+    else
+        # Fallback to python3
+        if command -v python3 >/dev/null 2>&1; then
+            echo "python3"
+            return 0
+        fi
+    fi
+
+    return 1
+}
+
+check_aliases_are_correct() {
+    local target_binary="$1"
+    local shell_rc
+    shell_rc=$(get_shell_rc_file)
+
+    if [ ! -f "$shell_rc" ]; then
+        return 1  # File doesn't exist, need to create aliases
+    fi
+
+    # Check if our marker comment exists
+    if ! grep -q "^# Python aliases (configured by install_python.sh)$" "$shell_rc" 2>/dev/null; then
+        return 1  # Our aliases not found, need to create
+    fi
+
+    # Check if both aliases point to the target binary
+    local python_alias
+    python_alias=$(grep "^alias python=" "$shell_rc" 2>/dev/null | head -1 | sed "s/^alias python='\(.*\)'$/\1/")
+    local python3_alias
+    python3_alias=$(grep "^alias python3=" "$shell_rc" 2>/dev/null | head -1 | sed "s/^alias python3='\(.*\)'$/\1/")
+
+    if [ "$python_alias" = "$target_binary" ] && [ "$python3_alias" = "$target_binary" ]; then
+        return 0  # Aliases are already correct
+    fi
+
+    return 1  # Aliases need to be updated
+}
+
+configure_python_aliases() {
+    if [ "$PYTHON_SET_ALIASES" != "true" ] && [ "$PYTHON_SET_ALIASES" != "1" ] && [ "$PYTHON_SET_ALIASES" != "yes" ]; then
+        return 0
+    fi
+
+    local target_binary
+    target_binary=$(find_latest_python_binary "$PLATFORM" "$PYTHON_VERSION")
+
+    if [ -z "$target_binary" ]; then
+        echo "Warning: Could not find Python binary to create aliases"
+        return 1
+    fi
+
+    # Check if aliases are already correctly configured
+    if check_aliases_are_correct "$target_binary"; then
+        echo "Python aliases are already correctly configured: python and python3 -> $target_binary"
+        return 0
+    fi
+
+    local shell_rc
+    shell_rc=$(get_shell_rc_file)
+
+    # Ensure the directory exists
+    mkdir -p "$(dirname "$shell_rc")"
+
+    echo "Configuring Python aliases in $shell_rc..."
+
+    # Remove existing python/python3 aliases if they exist (including our marker comment)
+    if [ -f "$shell_rc" ]; then
+        # Create a temporary file without the old aliases
+        local temp_file
+        temp_file=$(mktemp)
+        # Remove our marker comment, alias lines, and the blank line before our block
+        awk '
+            /^# Python aliases \(configured by install_python.sh\)$/ { skip=1; next }
+            skip && /^alias python[3]*=/ { next }
+            skip && /^$/ { skip=0; next }
+            skip { skip=0 }
+            /^alias python[3]*=/ { next }
+            { print }
+        ' "$shell_rc" > "$temp_file" 2>/dev/null || cp "$shell_rc" "$temp_file"
+        mv "$temp_file" "$shell_rc"
+    fi
+
+    # Add new aliases
+    {
+        echo ""
+        echo "# Python aliases (configured by install_python.sh)"
+        echo "alias python='$target_binary'"
+        echo "alias python3='$target_binary'"
+    } >> "$shell_rc"
+
+    echo "Aliases configured: python and python3 -> $target_binary"
+    echo "Note: Restart your shell or run 'source $shell_rc' for aliases to take effect"
 }
 
 install_python_darwin() {
@@ -274,20 +442,44 @@ install_python() {
 
     local major_minor
     major_minor=$(normalize_version "$PYTHON_VERSION")
-    local installed_version
-    installed_version=$(get_installed_python_version "python3")
 
     # Check if requested version is already installed
-    if [ "$installed_version" != "none" ]; then
+    local python_already_installed=0
+    # On Linux, check for versioned binary (python3.x) first
+    local versioned_binary="python${major_minor}"
+    if [ "$PLATFORM" = "linux" ] && command -v "$versioned_binary" >/dev/null 2>&1; then
+        local installed_version
+        installed_version=$(get_installed_python_version "$versioned_binary")
         local installed_major_minor
         installed_major_minor=$(normalize_version "$installed_version")
         if [ "$installed_major_minor" = "$major_minor" ]; then
             echo "Python ${major_minor} is already installed (version ${installed_version})."
-            echo "Current version: $(python3 --version 2>&1)"
-            exit 0
-        else
-            echo "Python ${installed_major_minor} is installed, but ${major_minor} is requested."
+            echo "Current version: $($versioned_binary --version 2>&1)"
+            python_already_installed=1
         fi
+    fi
+
+    # Fallback check for python3 (for macOS or when versioned binary doesn't exist)
+    if [ "$python_already_installed" -eq 0 ]; then
+        local installed_version
+        installed_version=$(get_installed_python_version "python3")
+        if [ "$installed_version" != "none" ]; then
+            local installed_major_minor
+            installed_major_minor=$(normalize_version "$installed_version")
+            if [ "$installed_major_minor" = "$major_minor" ]; then
+                echo "Python ${major_minor} is already installed (version ${installed_version})."
+                echo "Current version: $(python3 --version 2>&1)"
+                python_already_installed=1
+            else
+                echo "Python ${installed_major_minor} is installed, but ${major_minor} is requested."
+            fi
+        fi
+    fi
+
+    # Configure aliases even if Python is already installed (idempotent)
+    if [ "$python_already_installed" -eq 1 ]; then
+        configure_python_aliases
+        exit 0
     fi
 
     echo "Installing Python ${PYTHON_VERSION}..."
@@ -309,13 +501,25 @@ install_python() {
     esac
 
     # Verify installation
+    # On Linux, check for versioned binary first (python3.x)
     local verify_cmd="python3"
-    if [ "$PLATFORM" = "darwin" ] && command -v pyenv >/dev/null 2>&1; then
+    if [ "$PLATFORM" = "linux" ]; then
+        local versioned_binary="python${major_minor}"
+        if command -v "$versioned_binary" >/dev/null 2>&1; then
+            verify_cmd="$versioned_binary"
+        fi
+    elif [ "$PLATFORM" = "darwin" ] && command -v pyenv >/dev/null 2>&1; then
         verify_cmd="python"
     fi
 
     if command -v "$verify_cmd" >/dev/null 2>&1; then
         echo "Python installed successfully: $($verify_cmd --version 2>&1)"
+        if [ "$PLATFORM" = "linux" ] && [ "$verify_cmd" != "python3" ]; then
+            echo "Note: Use '$verify_cmd' to access Python ${major_minor} (python3 still points to system Python)"
+        fi
+
+        # Configure aliases if enabled
+        configure_python_aliases
     else
         echo "Warning: Python installation completed but binary not found in PATH"
         echo "You may need to restart your shell or add Python to PATH manually"
@@ -373,12 +577,15 @@ usage() {
     echo ""
     echo "Optional environment variables:"
     echo "  PYTHON_VERSION       - Pin specific version (e.g., 3.12 or 3.12.5) or leave empty for latest"
+    echo "  PYTHON_SET_ALIASES   - Set aliases for python and python3 (default: true)"
+    echo "                         Set to 'false', '0', or 'no' to disable"
     echo ""
     echo "Examples:"
-    echo "  $0 install                          # Install latest Python"
-    echo "  PYTHON_VERSION=3.12 $0 install      # Install Python 3.12"
-    echo "  PYTHON_VERSION=3.11.5 $0 install    # Install Python 3.11.5"
-    echo "  $0 uninstall                        # Uninstall Python"
+    echo "  $0 install                                    # Install latest Python"
+    echo "  PYTHON_VERSION=3.12 $0 install              # Install Python 3.12"
+    echo "  PYTHON_VERSION=3.11.5 $0 install            # Install Python 3.11.5"
+    echo "  PYTHON_SET_ALIASES=false $0 install         # Install without setting aliases"
+    echo "  $0 uninstall                                 # Uninstall Python"
     exit 1
 }
 
