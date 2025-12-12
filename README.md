@@ -11,6 +11,7 @@ Command-line interface tools/scripts
 - [install_grafana.sh](docs/install_grafana.md)
 - [install_kafka.sh](docs/install_kafka.md)
 - [install_kubectl.sh](docs/install_kubectl.md)
+- [install_lm_studio.sh](docs/install_lm_studio.md)
 - [install_loki.sh](docs/install_loki.md)
 - [install_promtail.sh](docs/install_promtail.md)
 - [install_python.sh](docs/install_python.md)
@@ -40,6 +41,7 @@ Refer to the respective files for detailed usage instructions:
 - **[install_grafana.sh](docs/install_grafana.md)**: Install or uninstall Grafana web-based analytics and monitoring platform.
 - **[install_kafka.sh](docs/install_kafka.md)**: Install or uninstall Apache Kafka on a Linux system.
 - **[install_kubectl.sh](docs/install_kubectl.md)**: Install or uninstall `kubectl` on a Linux system.
+- **[install_lm_studio.sh](docs/install_lm_studio.md)**: Install or uninstall LM Studio for running large language models locally with headless API server support.
 - **[install_loki.sh](docs/install_loki.md)**: Install or uninstall Grafana Loki log aggregation system.
 - **[install_promtail.sh](docs/install_promtail.md)**: Install or uninstall Grafana Promtail log shipper with flexible configuration options.
 - **[install_python.sh](docs/install_python.md)**: Install or uninstall Python with version pinning support on Linux, macOS, and Windows.
