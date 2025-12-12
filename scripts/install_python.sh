@@ -29,9 +29,14 @@ normalize_version() {
     echo "$version" | cut -d. -f1,2
 }
 
+python_exists() {
+    local python_cmd="${1:-python3}"
+    command -v "$python_cmd" >/dev/null 2>&1
+}
+
 get_installed_python_version() {
     local python_cmd="${1:-python3}"
-    if command -v "$python_cmd" >/dev/null 2>&1; then
+    if python_exists "$python_cmd"; then
         # python3 --version -> "Python 3.12.3", extract 3.12
         "$python_cmd" --version 2>&1 | awk '{print $2}' | cut -d. -f1,2 | head -1
     else
@@ -200,18 +205,25 @@ install_python_linux() {
 }
 
 get_shell_rc_file() {
-    if [ -n "$ZSH_VERSION" ]; then
+    # Detect shell more reliably by checking $SHELL environment variable and common files
+    local detected_shell="${SHELL:-}"
+
+    # Check if zsh
+    if [[ "$detected_shell" == *"zsh"* ]] || [ -n "$ZSH_VERSION" ]; then
         echo "${HOME}/.zshrc"
-    elif [ -n "$BASH_VERSION" ]; then
-        # Prefer .bashrc over .bash_profile for interactive shells
-        if [ -f "${HOME}/.bashrc" ]; then
-            echo "${HOME}/.bashrc"
-        else
-            echo "${HOME}/.bash_profile"
-        fi
-    else
-        echo "${HOME}/.profile"
+        return 0
     fi
+
+    # For bash, prefer .bashrc (used by interactive shells)
+    # But also check if .bash_profile exists and doesn't source .bashrc
+    if [[ "$detected_shell" == *"bash"* ]] || [ -n "$BASH_VERSION" ] || [ -z "$detected_shell" ]; then
+        # Always use .bashrc for bash - it's what interactive shells use
+        echo "${HOME}/.bashrc"
+        return 0
+    fi
+
+    # Fallback to .profile
+    echo "${HOME}/.profile"
 }
 
 configure_pyenv_shell_integration() {
@@ -246,7 +258,7 @@ find_latest_python_binary() {
         # Check for versioned binaries (python3.20 down to python3.0)
         for major in {20..0}; do
             local test_binary="python3.${major}"
-            if command -v "$test_binary" >/dev/null 2>&1; then
+            if python_exists "$test_binary"; then
                 local ver
                 ver=$(get_installed_python_version "$test_binary")
                 if [ "$ver" != "none" ]; then
@@ -277,24 +289,24 @@ find_latest_python_binary() {
         fi
 
         # Fallback to python3 if no versioned binary found
-        if command -v python3 >/dev/null 2>&1; then
+        if python_exists "python3"; then
             echo "python3"
             return 0
         fi
     elif [ "$platform" = "darwin" ]; then
         # On macOS with pyenv, use python
-        if command -v pyenv >/dev/null 2>&1 && command -v python >/dev/null 2>&1; then
+        if command -v pyenv >/dev/null 2>&1 && python_exists "python"; then
             echo "python"
             return 0
         fi
         # Fallback to python3
-        if command -v python3 >/dev/null 2>&1; then
+        if python_exists "python3"; then
             echo "python3"
             return 0
         fi
     else
         # Fallback to python3
-        if command -v python3 >/dev/null 2>&1; then
+        if python_exists "python3"; then
             echo "python3"
             return 0
         fi
@@ -308,26 +320,30 @@ check_aliases_are_correct() {
     local shell_rc
     shell_rc=$(get_shell_rc_file)
 
-    if [ ! -f "$shell_rc" ]; then
-        return 1  # File doesn't exist, need to create aliases
+    # Check primary shell rc file
+    if [ -f "$shell_rc" ]; then
+        # Check if our marker comment exists
+        if grep -q "^# Python aliases (configured by install_python.sh)$" "$shell_rc" 2>/dev/null; then
+            # Check if both aliases point to the target binary
+            local python_alias
+            python_alias=$(grep "^alias python=" "$shell_rc" 2>/dev/null | head -1 | sed "s/^alias python='\(.*\)'$/\1/")
+            local python3_alias
+            python3_alias=$(grep "^alias python3=" "$shell_rc" 2>/dev/null | head -1 | sed "s/^alias python3='\(.*\)'$/\1/")
+
+            if [ "$python_alias" = "$target_binary" ] && [ "$python3_alias" = "$target_binary" ]; then
+                # Also check .profile if it's a bash setup
+                if [[ "$shell_rc" == *".bashrc"* ]] && [ -f "${HOME}/.profile" ]; then
+                    if grep -q "^# Python aliases (configured by install_python.sh)$" "${HOME}/.profile" 2>/dev/null; then
+                        return 0  # Aliases are already correct in both files
+                    fi
+                else
+                    return 0  # Aliases are already correct
+                fi
+            fi
+        fi
     fi
 
-    # Check if our marker comment exists
-    if ! grep -q "^# Python aliases (configured by install_python.sh)$" "$shell_rc" 2>/dev/null; then
-        return 1  # Our aliases not found, need to create
-    fi
-
-    # Check if both aliases point to the target binary
-    local python_alias
-    python_alias=$(grep "^alias python=" "$shell_rc" 2>/dev/null | head -1 | sed "s/^alias python='\(.*\)'$/\1/")
-    local python3_alias
-    python3_alias=$(grep "^alias python3=" "$shell_rc" 2>/dev/null | head -1 | sed "s/^alias python3='\(.*\)'$/\1/")
-
-    if [ "$python_alias" = "$target_binary" ] && [ "$python3_alias" = "$target_binary" ]; then
-        return 0  # Aliases are already correct
-    fi
-
-    return 1  # Aliases need to be updated
+    return 1  # Aliases need to be created or updated
 }
 
 configure_python_aliases() {
@@ -341,6 +357,17 @@ configure_python_aliases() {
     if [ -z "$target_binary" ]; then
         echo "Warning: Could not find Python binary to create aliases"
         return 1
+    fi
+
+    # Convert to absolute path to ensure aliases work in all contexts
+    # This is critical for aliases to work in new shells
+    local abs_binary
+    abs_binary=$(command -v "$target_binary" 2>/dev/null)
+    if [ -z "$abs_binary" ]; then
+        abs_binary=$(which "$target_binary" 2>/dev/null)
+    fi
+    if [ -n "$abs_binary" ]; then
+        target_binary="$abs_binary"
     fi
 
     # Check if aliases are already correctly configured
@@ -382,7 +409,45 @@ configure_python_aliases() {
         echo "alias python3='$target_binary'"
     } >> "$shell_rc"
 
+    # For bash, ensure aliases work in both interactive and login shells
+    if [[ "$shell_rc" == *".bashrc"* ]]; then
+        local bash_profile="${HOME}/.bash_profile"
+        local bash_login="${HOME}/.bash_login"
+        local profile="${HOME}/.profile"
+
+        # Ensure .bash_profile sources .bashrc if it exists
+        if [ -f "$bash_profile" ]; then
+            if ! grep -qE '\.bashrc|source.*bashrc' "$bash_profile" 2>/dev/null; then
+                echo "Ensuring $bash_profile sources $shell_rc..."
+                {
+                    echo ""
+                    echo "# Source .bashrc if it exists (for Python aliases)"
+                    echo "if [ -f ~/.bashrc ]; then"
+                    echo "    . ~/.bashrc"
+                    echo "fi"
+                } >> "$bash_profile"
+            fi
+        fi
+
+        # Also add to .profile as a fallback (used by some login shells)
+        if [ -f "$profile" ] && [ "$profile" != "$shell_rc" ]; then
+            if ! grep -q "^# Python aliases (configured by install_python.sh)$" "$profile" 2>/dev/null; then
+                echo "Adding aliases to $profile as fallback..."
+                {
+                    echo ""
+                    echo "# Python aliases (configured by install_python.sh)"
+                    echo "alias python='$target_binary'"
+                    echo "alias python3='$target_binary'"
+                } >> "$profile"
+            fi
+        fi
+    fi
+
     echo "Aliases configured: python and python3 -> $target_binary"
+    echo "Aliases added to: $shell_rc"
+    if [[ "$shell_rc" == *".bashrc"* ]] && [ -f "${HOME}/.profile" ]; then
+        echo "Aliases also added to: ${HOME}/.profile (fallback)"
+    fi
     echo "Note: Restart your shell or run 'source $shell_rc' for aliases to take effect"
 }
 
@@ -447,7 +512,7 @@ install_python() {
     local python_already_installed=0
     # On Linux, check for versioned binary (python3.x) first
     local versioned_binary="python${major_minor}"
-    if [ "$PLATFORM" = "linux" ] && command -v "$versioned_binary" >/dev/null 2>&1; then
+    if [ "$PLATFORM" = "linux" ] && python_exists "$versioned_binary"; then
         local installed_version
         installed_version=$(get_installed_python_version "$versioned_binary")
         local installed_major_minor
@@ -505,14 +570,14 @@ install_python() {
     local verify_cmd="python3"
     if [ "$PLATFORM" = "linux" ]; then
         local versioned_binary="python${major_minor}"
-        if command -v "$versioned_binary" >/dev/null 2>&1; then
+        if python_exists "$versioned_binary"; then
             verify_cmd="$versioned_binary"
         fi
     elif [ "$PLATFORM" = "darwin" ] && command -v pyenv >/dev/null 2>&1; then
         verify_cmd="python"
     fi
 
-    if command -v "$verify_cmd" >/dev/null 2>&1; then
+    if python_exists "$verify_cmd"; then
         echo "Python installed successfully: $($verify_cmd --version 2>&1)"
         if [ "$PLATFORM" = "linux" ] && [ "$verify_cmd" != "python3" ]; then
             echo "Note: Use '$verify_cmd' to access Python ${major_minor} (python3 still points to system Python)"
