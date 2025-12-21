@@ -143,22 +143,40 @@ setup_bash_completion() {
     mkdir -p "$completion_dir"
 
     local completion_file="$completion_dir/sam"
-    if command -v sam >/dev/null 2>&1; then
-        sam completion bash >"$completion_file" 2>/dev/null || {
-            echo "Warning: Could not generate bash completion for sam"
-            return 1
-        }
+    local sam_binary=""
+
+    # Try to find sam binary - check actual binary first, then symlink, then PATH
+    if [ -f "$install_dir/dist/sam" ]; then
+        sam_binary="$install_dir/dist/sam"
     elif [ -f "$install_dir/sam" ]; then
-        "$install_dir/sam" completion bash >"$completion_file" 2>/dev/null || {
-            echo "Warning: Could not generate bash completion for sam"
-            return 1
-        }
+        sam_binary="$install_dir/sam"
+    elif command -v sam >/dev/null 2>&1; then
+        sam_binary="sam"
     else
         echo "Warning: sam binary not found for completion setup"
         return 1
     fi
 
-    if [ -f "$completion_file" ]; then
+    # Ensure install_dir is in PATH for completion generation
+    local old_path="$PATH"
+    if [ "$(id -u)" -ne 0 ] && ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
+        export PATH="$HOME/.local/bin:$PATH"
+    fi
+
+    # Generate completion
+    if [ -n "$sam_binary" ]; then
+        if "$sam_binary" completion bash >"$completion_file" 2>/dev/null; then
+            # Success - restore PATH
+            export PATH="$old_path"
+        else
+            # Failed - restore PATH and return
+            export PATH="$old_path"
+            echo "Warning: Could not generate bash completion for sam"
+            return 1
+        fi
+    fi
+
+    if [ -f "$completion_file" ] && [ -s "$completion_file" ]; then
         if [ "$(id -u)" -eq 0 ]; then
             if ! grep -q 'source /etc/bash_completion.d/sam' "$bashrc_file" 2>/dev/null; then
                 echo 'source /etc/bash_completion.d/sam' >>"$bashrc_file"
@@ -170,6 +188,9 @@ setup_bash_completion() {
             fi
         fi
         echo "Bash completion configured in $bashrc_file"
+    else
+        echo "Warning: Bash completion file was not created or is empty"
+        return 1
     fi
 }
 
