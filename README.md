@@ -16,6 +16,7 @@ Command-line interface tools/scripts
 - [install_promtail.sh](docs/install_promtail.md)
 - [install_python.sh](docs/install_python.md)
 - [install_s3_mount.sh](docs/install_s3_mount.md)
+- [install_sam.sh](docs/install_sam.md)
 - [install_ssm_agent.sh](docs/install_ssm_agent.md)
 - [install_ssm_plugin.sh](docs/install_ssm_plugin.md)
 - [install_terraform.sh](docs/install_terraform.md)
@@ -46,6 +47,7 @@ Refer to the respective files for detailed usage instructions:
 - **[install_promtail.sh](docs/install_promtail.md)**: Install or uninstall Grafana Promtail log shipper with flexible configuration options.
 - **[install_python.sh](docs/install_python.md)**: Install or uninstall Python with version pinning support on Linux, macOS, and Windows.
 - **[install_s3_mount.sh](docs/install_s3_mount.md)**: Install or uninstall AWS Mountpoint for Amazon S3 to mount S3 buckets as local filesystems.
+- **[install_sam.sh](docs/install_sam.md)**: Install or uninstall the AWS SAM CLI for building, testing, and deploying serverless applications on Linux and macOS.
 - **[install_ssm_agent.sh](docs/install_ssm_agent.md)**: Install or uninstall the AWS Systems Manager (SSM) Agent on various Linux distributions, macOS, and Windows.
 - **[install_ssm_plugin.sh](docs/install_ssm_plugin.md)**: Install or uninstall the AWS SSM Session Manager Plugin for remote EC2 access.
 - **[install_terraform.sh](docs/install_terraform.md)**: Install or uninstall Terraform on supported Linux distributions.
