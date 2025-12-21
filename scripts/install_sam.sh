@@ -126,6 +126,56 @@ get_install_directory() {
     fi
 }
 
+get_shell_rc_file() {
+    # Detect shell more reliably by checking $SHELL environment variable and common files
+    local detected_shell="${SHELL:-}"
+
+    # Check if zsh
+    if [[ "$detected_shell" == *"zsh"* ]] || [ -n "$ZSH_VERSION" ]; then
+        echo "${HOME}/.zshrc"
+        return 0
+    fi
+
+    # For bash, prefer .bashrc (used by interactive shells)
+    if [[ "$detected_shell" == *"bash"* ]] || [ -n "$BASH_VERSION" ] || [ -z "$detected_shell" ]; then
+        echo "${HOME}/.bashrc"
+        return 0
+    fi
+
+    # Fallback to .profile
+    echo "${HOME}/.profile"
+}
+
+ensure_path_in_shell_profile() {
+    if [ "$(id -u)" -eq 0 ]; then
+        # Root user doesn't need PATH setup
+        return 0
+    fi
+
+    local install_dir
+    install_dir=$(get_install_directory)
+    local shell_rc
+    shell_rc=$(get_shell_rc_file)
+
+    # Check if PATH already includes install_dir
+    if grep -q "$install_dir" "$shell_rc" 2>/dev/null; then
+        return 0
+    fi
+
+    # Ensure the directory exists
+    mkdir -p "$(dirname "$shell_rc")"
+
+    # Add PATH export to shell profile
+    {
+        echo ""
+        echo "# Add $install_dir to PATH (configured by install_sam.sh)"
+        echo "export PATH=\"$install_dir:\$PATH\""
+    } >> "$shell_rc"
+
+    echo "Added $install_dir to PATH in $shell_rc"
+    echo "Note: Restart your shell or run 'source $shell_rc' for PATH to take effect"
+}
+
 setup_bash_completion() {
     local install_dir
     install_dir=$(get_install_directory)
@@ -163,16 +213,24 @@ setup_bash_completion() {
         export PATH="$HOME/.local/bin:$PATH"
     fi
 
-    # Generate completion
+    # Check if completion command is available (not all SAM CLI versions support it)
     if [ -n "$sam_binary" ]; then
-        if "$sam_binary" completion bash >"$completion_file" 2>/dev/null; then
-            # Success - restore PATH
-            export PATH="$old_path"
+        # Check if 'completion' command exists by checking help output
+        if "$sam_binary" --help 2>/dev/null | grep -q "completion" || \
+           "$sam_binary" completion --help >/dev/null 2>&1; then
+            # Generate completion
+            if "$sam_binary" completion bash >"$completion_file" 2>/dev/null; then
+                # Success - restore PATH
+                export PATH="$old_path"
+            else
+                # Failed - restore PATH and return silently (completion not critical)
+                export PATH="$old_path"
+                return 0
+            fi
         else
-            # Failed - restore PATH and return
+            # Completion command not available in this version - silently skip
             export PATH="$old_path"
-            echo "Warning: Could not generate bash completion for sam"
-            return 1
+            return 0
         fi
     fi
 
@@ -188,9 +246,6 @@ setup_bash_completion() {
             fi
         fi
         echo "Bash completion configured in $bashrc_file"
-    else
-        echo "Warning: Bash completion file was not created or is empty"
-        return 1
     fi
 }
 
@@ -346,15 +401,26 @@ install_sam() {
             ;;
     esac
 
+    # Ensure PATH is set in shell profile for non-root users
+    ensure_path_in_shell_profile
+
     # Verify installation
     local install_dir
     install_dir=$(get_install_directory)
+
+    # Temporarily add install_dir to PATH for verification
+    if [ "$(id -u)" -ne 0 ] && ! echo "$PATH" | grep -q "$install_dir"; then
+        export PATH="$install_dir:$PATH"
+    fi
 
     if command -v sam >/dev/null 2>&1; then
         echo "AWS SAM CLI installed successfully: $(sam --version 2>&1 | head -1)"
     elif [ -f "$install_dir/sam" ]; then
         echo "AWS SAM CLI installed successfully at $install_dir/sam"
         "$install_dir/sam" --version
+    elif [ -f "$install_dir/dist/sam" ]; then
+        echo "AWS SAM CLI installed successfully at $install_dir/dist/sam"
+        "$install_dir/dist/sam" --version
     else
         echo "Warning: 'sam' command not found in PATH or at $install_dir"
         echo "You may need to add $install_dir to your PATH"
