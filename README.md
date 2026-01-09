@@ -6,6 +6,7 @@ Command-line interface tools/scripts
 
 - [install_aws_cli.sh](docs/install_aws_cli.md)
 - [install_aws_vault.sh](docs/install_aws_vault.md)
+- [bwsm_secret.sh](docs/bwsm_secret.md)
 - [install_cloudwatch_agent.sh](docs/install_cloudwatch_agent.md)
 - [install_codedeploy_agent.sh](docs/install_codedeploy_agent.md)
 - [install_grafana.sh](docs/install_grafana.md)
@@ -37,6 +38,7 @@ Refer to the respective files for detailed usage instructions:
 
 - **[install_aws_cli.sh](docs/install_aws_cli.md)**: Install or uninstall the AWS CLI on supported Linux distributions.
 - **[install_aws_vault.sh](docs/install_aws_vault.md)**: Manage AWS Vault installation and configuration.
+- **[bwsm_secret.sh](docs/bwsm_secret.md)**: Manage secrets in Bitwarden Secrets Manager (get, create, update, delete, list) with automatic prerequisite handling.
 - **[install_cloudwatch_agent.sh](docs/install_cloudwatch_agent.md)**: Install or uninstall the AWS CloudWatch Unified Agent.
 - **[install_codedeploy_agent.sh](docs/install_codedeploy_agent.md)**: Install or uninstall the AWS CodeDeploy agent.
 - **[install_grafana.sh](docs/install_grafana.md)**: Install or uninstall Grafana web-based analytics and monitoring platform.
