@@ -59,14 +59,23 @@ cleanup() {
 }
 trap cleanup EXIT
 
+# Logging function - sends messages to stderr so they're visible but not captured in command substitution
+log_info() {
+    echo "[bwsm_secret] $*" >&2
+}
+
+log_error() {
+    echo "[bwsm_secret] ERROR: $*" >&2
+}
+
 # Detect execution context (URL vs local file)
 detect_execution_context() {
     # Check if script is being run from URL (piped via curl) or local file
     if [[ "${BASH_SOURCE[0]}" == *"/dev/fd/"* ]] || [[ ! -f "${BASH_SOURCE[0]}" ]]; then
         # Running from URL - download Python script from GitHub
-        echo "Detected execution from URL. Downloading Python script..."
+        log_info "Detected execution from URL. Downloading Python script..."
         if ! curl -fsSL "$GITHUB_BASE/bwsm_secret.py" -o "$TMP_PYTHON_SCRIPT"; then
-            echo "Error: Failed to download Python script from GitHub" >&2
+            log_error "Failed to download Python script from GitHub"
             exit 1
         fi
         chmod +x "$TMP_PYTHON_SCRIPT"
@@ -79,7 +88,7 @@ detect_execution_context() {
         IS_URL_EXECUTION=false
 
         if [[ ! -f "$PYTHON_SCRIPT" ]]; then
-            echo "Error: Python script not found at $PYTHON_SCRIPT" >&2
+            log_error "Python script not found at $PYTHON_SCRIPT"
             exit 1
         fi
     fi
@@ -91,12 +100,12 @@ ensure_python() {
         return 0
     fi
 
-    echo "Python 3 not found. Installing..."
+    log_info "Python 3 not found. Installing..."
 
     if [[ "$IS_URL_EXECUTION" == "true" ]]; then
         # Download install_python.sh from GitHub
         if ! curl -fsSL "$GITHUB_BASE/install_python.sh" -o "$TMP_INSTALL_SCRIPT"; then
-            echo "Error: Failed to download install_python.sh from GitHub" >&2
+            log_error "Failed to download install_python.sh from GitHub"
             exit 1
         fi
         chmod +x "$TMP_INSTALL_SCRIPT"
@@ -105,7 +114,7 @@ ensure_python() {
         # Use local install_python.sh
         INSTALL_SCRIPT="$SCRIPT_DIR/install_python.sh"
         if [[ ! -f "$INSTALL_SCRIPT" ]]; then
-            echo "Error: install_python.sh not found at $INSTALL_SCRIPT" >&2
+            log_error "install_python.sh not found at $INSTALL_SCRIPT"
             exit 1
         fi
         bash "$INSTALL_SCRIPT" install
@@ -113,7 +122,7 @@ ensure_python() {
 
     # Verify Python is now available
     if ! command -v python3 >/dev/null 2>&1; then
-        echo "Error: Python 3 installation failed or python3 not in PATH" >&2
+        log_error "Python 3 installation failed or python3 not in PATH"
         exit 1
     fi
 }
@@ -124,7 +133,7 @@ ensure_bitwarden_sdk() {
         return 0
     fi
 
-    echo "bitwarden_sdk not found. Installing..."
+    log_info "bitwarden_sdk not found. Installing..."
 
     # Try python3 -m pip first, then pip3
     if python3 -m pip install bitwarden-sdk 2>/dev/null; then
@@ -132,7 +141,7 @@ ensure_bitwarden_sdk() {
     elif pip3 install bitwarden-sdk 2>/dev/null; then
         return 0
     else
-        echo "Error: Failed to install bitwarden-sdk. Please install manually:" >&2
+        log_error "Failed to install bitwarden-sdk. Please install manually:"
         echo "  python3 -m pip install bitwarden-sdk" >&2
         exit 1
     fi
