@@ -1,0 +1,15 @@
+---
+description: Repo layout and where scripts, docs, and Cursor config live
+alwaysApply: true
+---
+
+# Project overview
+
+This repo (cli-tools) is a collection of CLI scripts: install/uninstall tools, manage/sync/setup utilities. Each script has one doc in `docs/` and an entry in the README.
+
+- **Scripts**: `scripts/` — Bash (`.sh`) and Python (`.py`). Do not add scripts outside `scripts/`. **Naming**: use a verb prefix, lowercase with underscores (e.g. `install_uv.sh`, `get_twitch_schedule.py`, `sync_github_repos.sh`, `manage_kafka.sh`, `setup_msk_iam_auth.sh`).
+- **Docs**: `docs/` — one Markdown file per script, e.g. `docs/install_uv.md` for `scripts/install_uv.sh`. README has a table of contents and an Overview section linking each script to its doc.
+- **Cursor**: `.cursor/rules/` for file-specific conventions; `.cursor/skills/` for workflows (e.g. adding a new script). Use the **add-install-script** skill when adding a new script + doc + README entry.
+- **MCP**: Optional; project config is `.cursor/mcp.json`; user config is `~/.cursor/mcp.json`.
+
+When adding or changing files, follow the rules that match the file type (shell, Python, or docs).

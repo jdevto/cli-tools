@@ -1,0 +1,17 @@
+---
+description: Doc structure and Markdown style for docs and README
+globs: docs/**/*.md,**/README.md
+alwaysApply: false
+---
+
+# Docs and Markdown
+
+- One doc per script: `docs/<script_basename>.md` (e.g. `docs/install_uv.md` for `scripts/install_uv.sh`). Base name = script name without path.
+- README: table of contents with links to each `docs/*.md`, then an Overview section with one bullet per script (brief description + link).
+- Doc structure (typical): first line is H1 with script name (e.g. `# install_uv.sh`). Then: short intro, **Usage** (syntax), **Example Usage**, **Verification**, **Supported Operating Systems** / **Supported Architectures**, **Features**, **Installation Methods** or equivalent, **Optional environment variables**, **Troubleshooting** if needed.
+- Fenced code blocks: always set the language (e.g. `bash`, `json`) so markdown-lint is satisfied.
+- Match CI: `.github/workflows/markdown-lint.yml` enables first-line-h1, fenced-code-language, no bare URLs, etc.; keep markdown valid for that config.
+
+**Good doc start:** H1 with script name, intro, then Usage (with a `bash` fenced block), Example Usage, etc. Always use a language on fenced blocks (e.g. `bash`).
+
+**README:** Keep TOC and Overview in sync when adding a new script; add one TOC line and one Overview bullet.

@@ -1,0 +1,45 @@
+---
+description: Bash script conventions for scripts in this repo
+globs: scripts/**/*.sh
+alwaysApply: false
+---
+
+# Shell script conventions
+
+- **Naming**: Verb prefix, lowercase with underscores (e.g. `install_<tool>.sh`, `manage_<thing>.sh`, `sync_<thing>.sh`, `setup_<thing>.sh`, `get_<thing>.sh`).
+- Shebang: `#!/bin/bash`
+- Fail fast: `set -e`
+- Cleanup: define `cleanup()` and register with `trap cleanup EXIT` (use `:` if no temp files)
+- Usage: provide a `usage()` that prints Usage, optional env vars, and Examples; call it for invalid args
+- Install scripts: prefer idempotent install (e.g. skip if already installed, print version and exit 0)
+- When installing binaries: detect platform (`OSTYPE` → linux/darwin/windows) and architecture (`uname -m` → x86_64/arm64); fail with a clear message on unsupported values
+- Optional version pin: use env var like `TOOL_VERSION="${TOOL_VERSION:-}"` and document in usage
+
+**Good (snippet):**
+
+```bash
+#!/bin/bash
+
+set -e
+
+cleanup() {
+    :
+}
+trap cleanup EXIT
+
+usage() {
+    echo "Usage: $0 [install|uninstall]"
+    echo "Optional environment variables:"
+    echo "  TOOL_VERSION  - Pin version (default: latest)"
+    exit 1
+}
+```
+
+**Idempotent install:**
+
+```bash
+if command -v tool &>/dev/null; then
+    echo "Tool is already installed. Skipping."
+    exit 0
+fi
+```

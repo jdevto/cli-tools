@@ -1,0 +1,44 @@
+---
+description: Python CLI conventions for scripts in this repo
+globs: scripts/**/*.py
+alwaysApply: false
+---
+
+# Python CLI conventions
+
+- **Naming**: Verb prefix, lowercase with underscores (e.g. `get_twitch_schedule.py`, `bwsm_secret.py`). Match the pattern used for shell scripts: `get_*`, `install_*`, `sync_*`, `manage_*`, etc.
+- Shebang: `#!/usr/bin/env python3`
+- Module docstring: include Usage, Examples, Config sources (CLI then env), Output behavior, and **Exit codes** (0 success, 2 config/usage, 3 auth, 4 not found, 5 runtime/sdk)
+- Subcommands: use `argparse` with subcommand as first positional; build parser per subcommand and parse `sys.argv[2:]`
+- Config: resolve from CLI args first, then environment variables; document both in help and docstring
+- Errors: print to stderr via a small helper, e.g. `def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)`
+- Exit: `raise SystemExit(main())` in `if __name__ == "__main__"`; return the exit code from `main()` and handlers
+- Types: use type hints and `typing` (Optional, List, Tuple) for public functions
+
+**Exit codes (stick to these):**
+
+- 0 — success
+- 2 — config/usage error (missing args, invalid format)
+- 3 — auth error
+- 4 — not found
+- 5 — SDK or runtime error
+
+**Docstring snippet:**
+
+```python
+"""
+Exit codes:
+  0 success
+  2 config/usage error
+  3 auth error
+  4 not found
+  5 sdk/runtime error
+"""
+```
+
+**Stderr for errors:**
+
+```python
+def eprint(*args: object, **kwargs) -> None:
+    print(*args, file=sys.stderr, **kwargs)
+```

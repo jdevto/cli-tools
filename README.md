@@ -27,6 +27,7 @@ Command-line interface tools/scripts
 - [manage_kafka.sh](docs/manage_kafka.md)
 - [setup_msk_iam_auth.sh](docs/setup_msk_iam_auth.md)
 - [sync_github_repos.sh](docs/sync_github_repos.md)
+- [get_twitch_schedule.py](docs/get_twitch_schedule.md)
 
 ## Overview
 
@@ -59,6 +60,7 @@ Refer to the respective files for detailed usage instructions:
 - **[manage_kafka.sh](docs/manage_kafka.md)**: Manage Kafka topics, consumers, and producers.
 - **[setup_msk_iam_auth.sh](docs/setup_msk_iam_auth.md)**: Configure IAM authentication for Amazon MSK.
 - **[sync_github_repos.sh](docs/sync_github_repos.md)**: Clone or update repositories for a GitHub organization or user.
+- **[get_twitch_schedule.py](docs/get_twitch_schedule.md)**: Fetch a Twitch channel's upcoming stream schedule from the Helix API (JSON to stdout).
 
 ## Usage
 
