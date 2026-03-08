@@ -34,6 +34,14 @@ By channel ID (saves quota by skipping channels.list):
 ./get_youtube_upcoming.py --channel-id UCxxxxxxxxxxxxxxxxxx
 ```
 
+## Running Without Cloning
+
+```bash
+python3 <(curl -s https://raw.githubusercontent.com/jdevto/cli-tools/main/scripts/get_youtube_upcoming.py)
+```
+
+Set `YOUTUBE_API_KEY` in the environment first. Add `--channel-handle` or `--channel-id` after the URL if needed.
+
 ## Verification
 
 Check that the script prints valid JSON (array of video objects, or `[]` if no upcoming streams):

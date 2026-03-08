@@ -17,7 +17,8 @@ Use this skill when adding a new script (install/uninstall or similar) to the re
    - Use [scripts/install_uv.sh](scripts/install_uv.sh) as a template (structure, usage, install/uninstall, optional env var).
 
 3. **Create the doc** in `docs/<name>.md`:
-   - Follow the **docs-and-markdown** rule: H1 = script name, then Usage, Example Usage, Verification, Supported OS/arch, Features, optional env vars.
+   - Follow the **docs-and-markdown** rule: H1 = script name, then Usage, Example Usage, **Running Without Cloning**, Verification, Supported OS/arch, Features, optional env vars.
+   - **Running Without Cloning**: after Example Usage, add a section with one `bash` block. Shell: `bash <(curl -s https://raw.githubusercontent.com/jdevto/cli-tools/main/scripts/<name>.sh) [args]`. Python: `python3 <(curl -s https://raw.githubusercontent.com/jdevto/cli-tools/main/scripts/<name>.py) [args]`. Add a short note if env vars or args are required.
    - Use [docs/install_uv.md](docs/install_uv.md) as a template (sections and fenced code with `bash`).
 
 4. **Update README**:
@@ -27,7 +28,7 @@ Use this skill when adding a new script (install/uninstall or similar) to the re
 ## Checklist
 
 - [ ] Script in `scripts/` with correct shebang, set -e, cleanup trap, usage()
-- [ ] Doc in `docs/` with H1, Usage, Example Usage, Verification, Supported OS/arch, Features
+- [ ] Doc in `docs/` with H1, Usage, Example Usage, Running Without Cloning, Verification, Supported OS/arch, Features
 - [ ] README TOC line and Overview bullet added
 - [ ] All fenced code blocks use a language (e.g. `bash`)
 

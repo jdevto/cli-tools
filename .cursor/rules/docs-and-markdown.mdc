@@ -8,7 +8,8 @@ alwaysApply: false
 
 - One doc per script: `docs/<script_basename>.md` (e.g. `docs/install_uv.md` for `scripts/install_uv.sh`). Base name = script name without path.
 - README: table of contents with links to each `docs/*.md`, then an Overview section with one bullet per script (brief description + link).
-- Doc structure (typical): first line is H1 with script name (e.g. `# install_uv.sh`). Then: short intro, **Usage** (syntax), **Example Usage**, **Verification**, **Supported Operating Systems** / **Supported Architectures**, **Features**, **Installation Methods** or equivalent, **Optional environment variables**, **Troubleshooting** if needed.
+- Doc structure (typical): first line is H1 with script name (e.g. `# install_uv.sh`). Then: short intro, **Usage** (syntax), **Example Usage**, **Running Without Cloning**, **Verification**, **Supported Operating Systems** / **Supported Architectures**, **Features**, **Installation Methods** or equivalent, **Optional environment variables**, **Troubleshooting** if needed.
+- **Running Without Cloning**: Include this section after Example Usage. One fenced `bash` block: run the script via curl from GitHub raw (branch `main`). Bash scripts: `bash <(curl -s https://raw.githubusercontent.com/jdevto/cli-tools/main/scripts/<name>.sh) [args]`. Python scripts: `python3 <(curl -s https://raw.githubusercontent.com/jdevto/cli-tools/main/scripts/<name>.py) [args]`. Add a one-line note after the block if env vars or args are required.
 - Fenced code blocks: always set the language (e.g. `bash`, `json`) so markdown-lint is satisfied.
 - Match CI: `.github/workflows/markdown-lint.yml` enables first-line-h1, fenced-code-language, no bare URLs, etc.; keep markdown valid for that config.
 

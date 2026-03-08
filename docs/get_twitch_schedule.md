@@ -35,6 +35,14 @@ By broadcaster ID (skip login lookup):
 ./get_twitch_schedule.py --broadcaster-id 141981764
 ```
 
+## Running Without Cloning
+
+```bash
+python3 <(curl -s https://raw.githubusercontent.com/jdevto/cli-tools/main/scripts/get_twitch_schedule.py)
+```
+
+Set `TWITCH_CLIENT_ID` and `TWITCH_CLIENT_SECRET` in the environment first. Add `--login` or `--broadcaster-id` after the URL if needed.
+
 ## Verification
 
 Check that the script prints valid JSON (schedule data or `[]` if the channel has no schedule):
