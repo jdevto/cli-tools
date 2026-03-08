@@ -29,6 +29,7 @@ Command-line interface tools/scripts
 - [sync_github_repos.sh](docs/sync_github_repos.md)
 - [get_discord_events.py](docs/get_discord_events.md)
 - [get_twitch_schedule.py](docs/get_twitch_schedule.md)
+- [get_youtube_upcoming.py](docs/get_youtube_upcoming.md)
 
 ## Overview
 
@@ -63,6 +64,7 @@ Refer to the respective files for detailed usage instructions:
 - **[sync_github_repos.sh](docs/sync_github_repos.md)**: Clone or update repositories for a GitHub organization or user.
 - **[get_discord_events.py](docs/get_discord_events.md)**: Fetch a Discord guild's scheduled events (raw API JSON to stdout).
 - **[get_twitch_schedule.py](docs/get_twitch_schedule.md)**: Fetch a Twitch channel's upcoming stream schedule from the Helix API (JSON to stdout).
+- **[get_youtube_upcoming.py](docs/get_youtube_upcoming.md)**: Fetch a YouTube channel's upcoming scheduled live streams (YouTube Data API v3, JSON to stdout).
 
 ## Usage
 
