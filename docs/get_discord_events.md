@@ -28,6 +28,14 @@ Override guild ID:
 ./get_discord_events.py --guild-id 123456789
 ```
 
+## Running Without Cloning
+
+```bash
+python3 <(curl -s https://raw.githubusercontent.com/jdevto/cli-tools/main/scripts/get_discord_events.py)
+```
+
+Set `DISCORD_BOT_TOKEN` and `DISCORD_GUILD_ID` in the environment first, or pass `--guild-id` after the URL.
+
 ## Verification
 
 Check that the script prints valid JSON (array of scheduled events, or `[]` if none):
