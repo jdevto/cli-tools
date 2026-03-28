@@ -13,6 +13,7 @@ Command-line interface tools/scripts
 - [install_grafana.sh](docs/install_grafana.md)
 - [install_k9s.sh](docs/install_k9s.md)
 - [install_kafka.sh](docs/install_kafka.md)
+- [install_kustomize.sh](docs/install_kustomize.md)
 - [install_kubectl.sh](docs/install_kubectl.md)
 - [install_lm_studio.sh](docs/install_lm_studio.md)
 - [install_loki.sh](docs/install_loki.md)
@@ -50,6 +51,7 @@ Refer to the respective files for detailed usage instructions:
 - **[install_grafana.sh](docs/install_grafana.md)**: Install or uninstall Grafana web-based analytics and monitoring platform.
 - **[install_k9s.sh](docs/install_k9s.md)**: Install or uninstall k9s, a terminal UI for Kubernetes, on Linux and macOS.
 - **[install_kafka.sh](docs/install_kafka.md)**: Install or uninstall Apache Kafka on a Linux system.
+- **[install_kustomize.sh](docs/install_kustomize.md)**: Install or uninstall Kustomize (Kubernetes configuration management) on Linux and macOS from official GitHub releases.
 - **[install_kubectl.sh](docs/install_kubectl.md)**: Install or uninstall `kubectl` on a Linux system.
 - **[install_lm_studio.sh](docs/install_lm_studio.md)**: Install or uninstall LM Studio for running large language models locally with headless API server support.
 - **[install_loki.sh](docs/install_loki.md)**: Install or uninstall Grafana Loki log aggregation system.
