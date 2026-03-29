@@ -9,6 +9,7 @@ Command-line interface tools/scripts
 - [bwsm_secret.sh](docs/bwsm_secret.md)
 - [install_cloudwatch_agent.sh](docs/install_cloudwatch_agent.md)
 - [install_codedeploy_agent.sh](docs/install_codedeploy_agent.md)
+- [install_glab.sh](docs/install_glab.md)
 - [install_goaccess.sh](docs/install_goaccess.md)
 - [install_grafana.sh](docs/install_grafana.md)
 - [install_k9s.sh](docs/install_k9s.md)
@@ -47,6 +48,7 @@ Refer to the respective files for detailed usage instructions:
 - **[bwsm_secret.sh](docs/bwsm_secret.md)**: Manage secrets in Bitwarden Secrets Manager (get, create, update, delete, list) with automatic prerequisite handling.
 - **[install_cloudwatch_agent.sh](docs/install_cloudwatch_agent.md)**: Install or uninstall the AWS CloudWatch Unified Agent.
 - **[install_codedeploy_agent.sh](docs/install_codedeploy_agent.md)**: Install or uninstall the AWS CodeDeploy agent.
+- **[install_glab.sh](docs/install_glab.md)**: Install or uninstall the GitLab CLI (`glab`) from official [GitLab releases](https://gitlab.com/gitlab-org/cli/-/releases) (Linux/macOS).
 - **[install_goaccess.sh](docs/install_goaccess.md)**: Install or uninstall GoAccess (real-time log analyzer) from the official source; version aligned with [goaccess.io/download](https://goaccess.io/download).
 - **[install_grafana.sh](docs/install_grafana.md)**: Install or uninstall Grafana web-based analytics and monitoring platform.
 - **[install_k9s.sh](docs/install_k9s.md)**: Install or uninstall k9s, a terminal UI for Kubernetes, on Linux and macOS.
