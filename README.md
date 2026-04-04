@@ -4,6 +4,8 @@ Command-line interface tools/scripts
 
 ## Table of Contents
 
+- [install_ag.sh](docs/install_ag.md)
+- [install_agentcore_cli.sh](docs/install_agentcore_cli.md)
 - [install_aws_cli.sh](docs/install_aws_cli.md)
 - [install_aws_vault.sh](docs/install_aws_vault.md)
 - [bwsm_secret.sh](docs/bwsm_secret.md)
@@ -18,6 +20,7 @@ Command-line interface tools/scripts
 - [install_kubectl.sh](docs/install_kubectl.md)
 - [install_lm_studio.sh](docs/install_lm_studio.md)
 - [install_loki.sh](docs/install_loki.md)
+- [install_npm.sh](docs/install_npm.md)
 - [install_promtail.sh](docs/install_promtail.md)
 - [install_python.sh](docs/install_python.md)
 - [install_s3_mount.sh](docs/install_s3_mount.md)
@@ -28,6 +31,7 @@ Command-line interface tools/scripts
 - [install_tfenv.sh](docs/install_tfenv.md)
 - [install_uv.sh](docs/install_uv.md)
 - [install_vscode_server.sh](docs/install_vscode_server.md)
+- [install_yq.sh](docs/install_yq.md)
 - [manage_kafka.sh](docs/manage_kafka.md)
 - [setup_msk_iam_auth.sh](docs/setup_msk_iam_auth.md)
 - [sync_github_repos.sh](docs/sync_github_repos.md)
@@ -43,6 +47,8 @@ Each script has its own documentation available in the `docs/` directory.
 
 Refer to the respective files for detailed usage instructions:
 
+- **[install_ag.sh](docs/install_ag.md)**: Install or uninstall [The Silver Searcher](https://github.com/ggreer/the_silver_searcher) (`ag`) via apt, dnf/yum, zypper, pacman, apk, or Homebrew (aligned with [jajera/features ag](https://github.com/jajera/features/blob/main/src/ag/README.md) package names).
+- **[install_agentcore_cli.sh](docs/install_agentcore_cli.md)**: Install or uninstall the Amazon Bedrock AgentCore CLI (`agentcore`) from npm (`@aws/agentcore`), per the [AgentCore CLI quickstart](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-get-started-cli.html).
 - **[install_aws_cli.sh](docs/install_aws_cli.md)**: Install or uninstall the AWS CLI on supported Linux distributions.
 - **[install_aws_vault.sh](docs/install_aws_vault.md)**: Manage AWS Vault installation and configuration.
 - **[bwsm_secret.sh](docs/bwsm_secret.md)**: Manage secrets in Bitwarden Secrets Manager (get, create, update, delete, list) with automatic prerequisite handling.
@@ -57,6 +63,7 @@ Refer to the respective files for detailed usage instructions:
 - **[install_kubectl.sh](docs/install_kubectl.md)**: Install or uninstall `kubectl` on a Linux system.
 - **[install_lm_studio.sh](docs/install_lm_studio.md)**: Install or uninstall LM Studio for running large language models locally with headless API server support.
 - **[install_loki.sh](docs/install_loki.md)**: Install or uninstall Grafana Loki log aggregation system.
+- **[install_npm.sh](docs/install_npm.md)**: Install or uninstall Node.js and npm from official [nodejs.org/dist](https://nodejs.org/dist/) builds (LTS or Current), aligned with the [Node.js download](https://nodejs.org/en/download) page.
 - **[install_promtail.sh](docs/install_promtail.md)**: Install or uninstall Grafana Promtail log shipper with flexible configuration options.
 - **[install_python.sh](docs/install_python.md)**: Install or uninstall Python with version pinning support on Linux, macOS, and Windows.
 - **[install_s3_mount.sh](docs/install_s3_mount.md)**: Install or uninstall AWS Mountpoint for Amazon S3 to mount S3 buckets as local filesystems.
@@ -67,6 +74,7 @@ Refer to the respective files for detailed usage instructions:
 - **[install_tfenv.sh](docs/install_tfenv.md)**: Install or uninstall `tfenv`, a version manager for Terraform.
 - **[install_uv.sh](docs/install_uv.md)**: Install or uninstall UV, an extremely fast Python package installer and resolver.
 - **[install_vscode_server.sh](docs/install_vscode_server.md)**: Install or uninstall VS Code Server for remote browser-based code editing.
+- **[install_yq.sh](docs/install_yq.md)**: Install or uninstall [mikefarah/yq](https://github.com/mikefarah/yq) (YAML/JSON/XML processor) on Linux and macOS from GitHub releases.
 - **[manage_kafka.sh](docs/manage_kafka.md)**: Manage Kafka topics, consumers, and producers.
 - **[setup_msk_iam_auth.sh](docs/setup_msk_iam_auth.md)**: Configure IAM authentication for Amazon MSK.
 - **[sync_github_repos.sh](docs/sync_github_repos.md)**: Clone or update repositories for a GitHub organization or user.
