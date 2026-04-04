@@ -28,6 +28,7 @@ Command-line interface tools/scripts
 - [install_tfenv.sh](docs/install_tfenv.md)
 - [install_uv.sh](docs/install_uv.md)
 - [install_vscode_server.sh](docs/install_vscode_server.md)
+- [install_yq.sh](docs/install_yq.md)
 - [manage_kafka.sh](docs/manage_kafka.md)
 - [setup_msk_iam_auth.sh](docs/setup_msk_iam_auth.md)
 - [sync_github_repos.sh](docs/sync_github_repos.md)
@@ -67,6 +68,7 @@ Refer to the respective files for detailed usage instructions:
 - **[install_tfenv.sh](docs/install_tfenv.md)**: Install or uninstall `tfenv`, a version manager for Terraform.
 - **[install_uv.sh](docs/install_uv.md)**: Install or uninstall UV, an extremely fast Python package installer and resolver.
 - **[install_vscode_server.sh](docs/install_vscode_server.md)**: Install or uninstall VS Code Server for remote browser-based code editing.
+- **[install_yq.sh](docs/install_yq.md)**: Install or uninstall [mikefarah/yq](https://github.com/mikefarah/yq) (YAML/JSON/XML processor) on Linux and macOS from GitHub releases.
 - **[manage_kafka.sh](docs/manage_kafka.md)**: Manage Kafka topics, consumers, and producers.
 - **[setup_msk_iam_auth.sh](docs/setup_msk_iam_auth.md)**: Configure IAM authentication for Amazon MSK.
 - **[sync_github_repos.sh](docs/sync_github_repos.md)**: Clone or update repositories for a GitHub organization or user.
