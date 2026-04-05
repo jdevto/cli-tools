@@ -4,6 +4,7 @@ Command-line interface tools/scripts
 
 ## Table of Contents
 
+- [install_ag.sh](docs/install_ag.md)
 - [install_aws_cli.sh](docs/install_aws_cli.md)
 - [install_aws_vault.sh](docs/install_aws_vault.md)
 - [bwsm_secret.sh](docs/bwsm_secret.md)
@@ -44,6 +45,7 @@ Each script has its own documentation available in the `docs/` directory.
 
 Refer to the respective files for detailed usage instructions:
 
+- **[install_ag.sh](docs/install_ag.md)**: Install or uninstall [The Silver Searcher](https://github.com/ggreer/the_silver_searcher) (`ag`) via apt, dnf/yum, zypper, pacman, apk, or Homebrew (aligned with [jajera/features ag](https://github.com/jajera/features/blob/main/src/ag/README.md) package names).
 - **[install_aws_cli.sh](docs/install_aws_cli.md)**: Install or uninstall the AWS CLI on supported Linux distributions.
 - **[install_aws_vault.sh](docs/install_aws_vault.md)**: Manage AWS Vault installation and configuration.
 - **[bwsm_secret.sh](docs/bwsm_secret.md)**: Manage secrets in Bitwarden Secrets Manager (get, create, update, delete, list) with automatic prerequisite handling.
