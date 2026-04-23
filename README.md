@@ -14,6 +14,7 @@ Command-line interface tools/scripts
 - [install_glab.sh](docs/install_glab.md)
 - [install_goaccess.sh](docs/install_goaccess.md)
 - [install_grafana.sh](docs/install_grafana.md)
+- [install_hey.sh](docs/install_hey.md)
 - [install_k9s.sh](docs/install_k9s.md)
 - [install_kafka.sh](docs/install_kafka.md)
 - [install_kustomize.sh](docs/install_kustomize.md)
@@ -57,6 +58,7 @@ Refer to the respective files for detailed usage instructions:
 - **[install_glab.sh](docs/install_glab.md)**: Install or uninstall the GitLab CLI (`glab`) from official [GitLab releases](https://gitlab.com/gitlab-org/cli/-/releases) (Linux/macOS).
 - **[install_goaccess.sh](docs/install_goaccess.md)**: Install or uninstall GoAccess (real-time log analyzer) from the official source; version aligned with [goaccess.io/download](https://goaccess.io/download).
 - **[install_grafana.sh](docs/install_grafana.md)**: Install or uninstall Grafana web-based analytics and monitoring platform.
+- **[install_hey.sh](docs/install_hey.md)**: Install or uninstall [hey](https://github.com/rakyll/hey) (HTTP load generator) from official prebuilt binaries or `go install` on arm64.
 - **[install_k9s.sh](docs/install_k9s.md)**: Install or uninstall k9s, a terminal UI for Kubernetes, on Linux and macOS.
 - **[install_kafka.sh](docs/install_kafka.md)**: Install or uninstall Apache Kafka on a Linux system.
 - **[install_kustomize.sh](docs/install_kustomize.md)**: Install or uninstall Kustomize (Kubernetes configuration management) on Linux and macOS from official GitHub releases.
