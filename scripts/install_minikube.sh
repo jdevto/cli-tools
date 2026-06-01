@@ -136,7 +136,16 @@ install_minikube() {
     fi
 
     echo "minikube v${target_version} installed successfully at ${INSTALL_PATH}"
-    minikube version --short 2>/dev/null || true
+    verify_minikube_binary
+}
+
+verify_minikube_binary() {
+    # minikube must not run as root (creates root-owned logs under /tmp that break the real user).
+    if [[ "$(id -u)" -eq 0 && -n "${SUDO_USER:-}" ]] && id "${SUDO_USER}" &>/dev/null; then
+        sudo -u "${SUDO_USER}" minikube version --short 2>/dev/null || true
+    else
+        minikube version --short 2>/dev/null || true
+    fi
 }
 
 uninstall_minikube() {
@@ -162,6 +171,7 @@ usage() {
     echo ""
     echo "Optional environment variables:"
     echo "  MINIKUBE_VERSION  - Pin version (e.g. v1.38.1 or 1.38.1). Default: latest release."
+    echo "  SUDO_USER         - When install runs via sudo, verify as this user (not root)."
     echo ""
     echo "Examples:"
     echo "  $0 install"

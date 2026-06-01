@@ -33,6 +33,12 @@ To install a specific version:
 MINIKUBE_VERSION=v1.38.1 ./install_minikube.sh install
 ```
 
+When running as root via `sudo` (e.g. EC2 bootstrap), verify as the target user:
+
+```bash
+sudo SUDO_USER=ec2-user ./install_minikube.sh install
+```
+
 To uninstall:
 
 ```bash
@@ -85,6 +91,7 @@ minikube start --driver=docker
 | Variable           | Description                                                |
 | ------------------ | ---------------------------------------------------------- |
 | `MINIKUBE_VERSION` | Pin version (e.g. `v1.38.1` or `1.38.1`). Omit for latest. |
+| `SUDO_USER`        | When the script runs as root via `sudo`, post-install verification runs as this user instead of root (avoids root-owned `/tmp/minikube_*` files). |
 
 ## Prerequisites
 
@@ -110,5 +117,8 @@ Uninstall removes `/usr/local/bin/minikube` only. It does not remove clusters, t
 4. **`minikube start` fails**  
    Install and start a supported driver (e.g. Docker), ensure your user is in the `docker` group where applicable, and do not run minikube as root. See [minikube docs](https://minikube.sigs.k8s.io/docs/).
 
-5. **Wrong or old version after install**  
+5. **`minikube status` permission denied on `/tmp` after install**  
+   Do not run `minikube version` or `minikube start` as root. When installing with `sudo`, set `SUDO_USER` (e.g. `sudo SUDO_USER=ec2-user ./install_minikube.sh install`) so verification runs as that user. On Amazon Linux 2023, also set `TMPDIR` to a user-writable directory (e.g. `~/.minikube/tmp`) in your shell profile.
+
+6. **Wrong or old version after install**  
    Pin explicitly with `MINIKUBE_VERSION=vX.Y.Z` or uninstall and reinstall.
