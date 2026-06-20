@@ -24,6 +24,7 @@ Command-line interface tools/scripts
 - [install_loki.sh](docs/install_loki.md)
 - [install_minikube.sh](docs/install_minikube.md)
 - [install_npm.sh](docs/install_npm.md)
+- [install_pio.sh](docs/install_pio.md)
 - [install_promtail.sh](docs/install_promtail.md)
 - [install_python.sh](docs/install_python.md)
 - [install_s3_mount.sh](docs/install_s3_mount.md)
@@ -70,6 +71,7 @@ Refer to the respective files for detailed usage instructions:
 - **[install_loki.sh](docs/install_loki.md)**: Install or uninstall Grafana Loki log aggregation system.
 - **[install_minikube.sh](docs/install_minikube.md)**: Install or uninstall [minikube](https://minikube.sigs.k8s.io/) on Linux and macOS from official release binaries ([minikube start](https://minikube.sigs.k8s.io/docs/start/)).
 - **[install_npm.sh](docs/install_npm.md)**: Install or uninstall Node.js and npm from official [nodejs.org/dist](https://nodejs.org/dist/) builds (LTS or Current), aligned with the [Node.js download](https://nodejs.org/en/download) page.
+- **[install_pio.sh](docs/install_pio.md)**: Install or uninstall [PlatformIO Core](https://platformio.org/) into `$HOME/.platformio/penv` via the official installer, with shell PATH setup and optional Python/version pinning.
 - **[install_promtail.sh](docs/install_promtail.md)**: Install or uninstall Grafana Promtail log shipper with flexible configuration options.
 - **[install_python.sh](docs/install_python.md)**: Install or uninstall Python with version pinning support on Linux, macOS, and Windows.
 - **[install_s3_mount.sh](docs/install_s3_mount.md)**: Install or uninstall AWS Mountpoint for Amazon S3 to mount S3 buckets as local filesystems.
