@@ -13,6 +13,7 @@ Command-line interface tools/scripts
 - [install_codedeploy_agent.sh](docs/install_codedeploy_agent.md)
 - [install_docker.sh](docs/install_docker.md)
 - [install_glab.sh](docs/install_glab.md)
+- [install_git.sh](docs/install_git.md)
 - [install_goaccess.sh](docs/install_goaccess.md)
 - [install_grafana.sh](docs/install_grafana.md)
 - [install_hey.sh](docs/install_hey.md)
@@ -60,6 +61,7 @@ Refer to the respective files for detailed usage instructions:
 - **[install_codedeploy_agent.sh](docs/install_codedeploy_agent.md)**: Install or uninstall the AWS CodeDeploy agent.
 - **[install_docker.sh](docs/install_docker.md)**: Install or uninstall [Docker Engine](https://docs.docker.com/engine/) on Amazon Linux 2023, Ubuntu, and Fedora (official packages; optional `DOCKER_USER` for the docker group).
 - **[install_glab.sh](docs/install_glab.md)**: Install or uninstall the GitLab CLI (`glab`) from official [GitLab releases](https://gitlab.com/gitlab-org/cli/-/releases) (Linux/macOS).
+- **[install_git.sh](docs/install_git.md)**: Install or uninstall [Git](https://git-scm.com/) via apt, dnf/yum, zypper, pacman, apk, or Homebrew.
 - **[install_goaccess.sh](docs/install_goaccess.md)**: Install or uninstall GoAccess (real-time log analyzer) from the official source; version aligned with [goaccess.io/download](https://goaccess.io/download).
 - **[install_grafana.sh](docs/install_grafana.md)**: Install or uninstall Grafana web-based analytics and monitoring platform.
 - **[install_hey.sh](docs/install_hey.md)**: Install or uninstall [hey](https://github.com/rakyll/hey) (HTTP load generator) from official prebuilt binaries or `go install` on arm64.
