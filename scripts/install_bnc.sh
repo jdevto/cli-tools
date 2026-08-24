@@ -62,6 +62,41 @@ is_amazon_linux_2023() {
     fi
 }
 
+ensure_directory() {
+    local dir_path="$1"
+    if [ -d "$dir_path" ]; then
+        return 0
+    fi
+    if mkdir -p "$dir_path" 2>/dev/null; then
+        return 0
+    fi
+    sudo mkdir -p "$dir_path"
+}
+
+install_file_with_optional_sudo() {
+    local src="$1"
+    local dst="$2"
+    local dst_dir
+    dst_dir=$(dirname "$dst")
+
+    ensure_directory "$dst_dir"
+    if install -m 755 "$src" "$dst" 2>/dev/null; then
+        return 0
+    fi
+    sudo install -m 755 "$src" "$dst"
+}
+
+remove_file_with_optional_sudo() {
+    local file_path="$1"
+    if [ ! -e "$file_path" ]; then
+        return 0
+    fi
+    if rm -f "$file_path" 2>/dev/null; then
+        return 0
+    fi
+    sudo rm -f "$file_path"
+}
+
 detect_linux_distro() {
     if [ -f /etc/os-release ]; then
         . /etc/os-release
@@ -272,7 +307,7 @@ install_bnc() {
     fi
 
     echo "Installing BNC to ${INSTALL_PREFIX}/bin..."
-    sudo install -m 755 "$bnc_bin" "${INSTALL_PREFIX}/bin/bnc"
+    install_file_with_optional_sudo "$bnc_bin" "${INSTALL_PREFIX}/bin/bnc"
 
     if ! bnc --help &>/dev/null; then
         echo "Error: BNC installed but failed to run. Check missing libraries with:"
@@ -296,12 +331,12 @@ uninstall_bnc() {
 
     echo "Uninstalling BNC..."
     if [ -f "$bin_path" ]; then
-        sudo rm -f "$bin_path"
+        remove_file_with_optional_sudo "$bin_path"
         echo "Removed $bin_path"
     elif command -v bnc &>/dev/null; then
         local path
         path=$(command -v bnc)
-        sudo rm -f "$path"
+        remove_file_with_optional_sudo "$path"
         echo "Removed $path"
     fi
     echo "BNC has been uninstalled."
