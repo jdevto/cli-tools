@@ -53,7 +53,7 @@ bnc --nw --conf /path/to/bnc.conf
 
 ## Supported Operating Systems
 
-- **Linux** (64-bit: Debian/Ubuntu, RHEL/CentOS/Rocky, openSUSE)
+- **Linux** (64-bit: Debian/Ubuntu, RHEL/CentOS/Rocky, Amazon Linux 2023, openSUSE)
 - **Linux ARM** (Raspberry Pi OS)
 - **macOS** (Intel — v2.13.1)
 
@@ -123,10 +123,12 @@ The script downloads the prebuilt BNC binary:
    - The script requires sudo for installing to `/usr/local/bin`
    - Alternatively, set `BNC_PREFIX=$HOME/.local` to install without sudo
 
-5. **Qt5 libraries missing**:
-   - BNC shared builds require Qt5; the script installs them automatically
-   - Manual install on Debian/Ubuntu: `sudo apt-get install libqt5core5a libqt5network5 libqt5gui5`
-   - Manual install on RHEL/Rocky: `sudo dnf install qt5-qtbase qt5-qtbase-gui`
+5. **Qt5 libraries missing** (common on Amazon Linux 2023):
+   - BNC shared builds require Qt5 (`libQt5Core`, `libQt5Gui`, `libQt5Svg`, etc.)
+   - Amazon Linux 2023 does not ship Qt5 in default or SPAL repos; the script installs Qt5 from Rocky Linux 9 repositories automatically
+   - Manual install on Debian/Ubuntu: `sudo apt-get install libqt5core5a libqt5network5 libqt5gui5 libqt5widgets5 libqt5svg5`
+   - Manual install on RHEL/Rocky: `sudo dnf install qt5-qtbase qt5-qtsvg qt5-qtbase-gui`
+   - Verify: `ldd $(command -v bnc) | grep Qt5` should show no `not found` entries
 
 ## Additional Resources
 
