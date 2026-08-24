@@ -8,6 +8,7 @@ Command-line interface tools/scripts
 - [install_agentcore_cli.sh](docs/install_agentcore_cli.md)
 - [install_aws_cli.sh](docs/install_aws_cli.md)
 - [install_aws_vault.sh](docs/install_aws_vault.md)
+- [install_bnc.sh](docs/install_bnc.md)
 - [bwsm_secret.sh](docs/bwsm_secret.md)
 - [install_cloudwatch_agent.sh](docs/install_cloudwatch_agent.md)
 - [install_codedeploy_agent.sh](docs/install_codedeploy_agent.md)
@@ -32,6 +33,7 @@ Command-line interface tools/scripts
 - [install_sam.sh](docs/install_sam.md)
 - [install_ssm_agent.sh](docs/install_ssm_agent.md)
 - [install_ssm_plugin.sh](docs/install_ssm_plugin.md)
+- [install_str2str.sh](docs/install_str2str.md)
 - [install_terraform.sh](docs/install_terraform.md)
 - [install_tfenv.sh](docs/install_tfenv.md)
 - [install_uv.sh](docs/install_uv.md)
@@ -56,6 +58,7 @@ Refer to the respective files for detailed usage instructions:
 - **[install_agentcore_cli.sh](docs/install_agentcore_cli.md)**: Install or uninstall the Amazon Bedrock AgentCore CLI (`agentcore`) from npm (`@aws/agentcore`), per the [AgentCore CLI quickstart](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-get-started-cli.html).
 - **[install_aws_cli.sh](docs/install_aws_cli.md)**: Install or uninstall the AWS CLI on supported Linux distributions.
 - **[install_aws_vault.sh](docs/install_aws_vault.md)**: Manage AWS Vault installation and configuration.
+- **[install_bnc.sh](docs/install_bnc.md)**: Install or uninstall the [BKG Ntrip Client (BNC)](https://igs.bkg.bund.de/ntrip/bnc), an open-source multi-stream client for retrieving, decoding, and converting real-time GNSS data from NTRIP broadcasters.
 - **[bwsm_secret.sh](docs/bwsm_secret.md)**: Manage secrets in Bitwarden Secrets Manager (get, create, update, delete, list) with automatic prerequisite handling.
 - **[install_cloudwatch_agent.sh](docs/install_cloudwatch_agent.md)**: Install or uninstall the AWS CloudWatch Unified Agent.
 - **[install_codedeploy_agent.sh](docs/install_codedeploy_agent.md)**: Install or uninstall the AWS CodeDeploy agent.
@@ -80,6 +83,7 @@ Refer to the respective files for detailed usage instructions:
 - **[install_sam.sh](docs/install_sam.md)**: Install or uninstall the AWS SAM CLI for building, testing, and deploying serverless applications on Linux and macOS.
 - **[install_ssm_agent.sh](docs/install_ssm_agent.md)**: Install or uninstall the AWS Systems Manager (SSM) Agent on various Linux distributions, macOS, and Windows.
 - **[install_ssm_plugin.sh](docs/install_ssm_plugin.md)**: Install or uninstall the AWS SSM Session Manager Plugin for remote EC2 access.
+- **[install_str2str.sh](docs/install_str2str.md)**: Install or uninstall [str2str](https://github.com/tomojitakasu/RTKLIB) from RTKLIB, an NTRIP stream relay tool for GNSS correction data between serial ports, TCP/IP, and NTRIP casters.
 - **[install_terraform.sh](docs/install_terraform.md)**: Install or uninstall Terraform on supported Linux distributions.
 - **[install_tfenv.sh](docs/install_tfenv.md)**: Install or uninstall `tfenv`, a version manager for Terraform.
 - **[install_uv.sh](docs/install_uv.md)**: Install or uninstall UV, an extremely fast Python package installer and resolver.
