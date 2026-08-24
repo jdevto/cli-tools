@@ -53,12 +53,28 @@ check_dependencies() {
     fi
 }
 
+is_amazon_linux_2023() {
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        [ "$ID" = "amzn" ] && [ "$VERSION_ID" = "2023" ]
+    else
+        return 1
+    fi
+}
+
 detect_linux_distro() {
     if [ -f /etc/os-release ]; then
         . /etc/os-release
         case "$ID" in
             debian|ubuntu|linuxmint|pop)
                 echo "debian12"
+                ;;
+            amzn)
+                if [ "$VERSION_ID" = "2023" ]; then
+                    echo "rocky9"
+                else
+                    echo "el8"
+                fi
                 ;;
             rhel|centos|rocky|alma|fedora)
                 local major_ver
@@ -73,12 +89,87 @@ detect_linux_distro() {
                 echo "suse15"
                 ;;
             *)
-                # Default to debian12 as most broadly compatible
                 echo "debian12"
                 ;;
         esac
     else
         echo "debian12"
+    fi
+}
+
+bnc_missing_qt_libs() {
+    local bnc_bin="$1"
+    if [ ! -f "$bnc_bin" ]; then
+        return 1
+    fi
+    ldd "$bnc_bin" 2>/dev/null | grep -q 'libQt5.*not found'
+}
+
+install_qt5_from_rocky9_repos() {
+    local repo_file="/etc/yum.repos.d/bnc-qt5-rocky.repo"
+    echo "Installing Qt5 runtime from Rocky Linux 9 repositories (required on Amazon Linux 2023)..."
+    sudo tee "$repo_file" >/dev/null <<'EOF'
+[bnc-qt5-rocky-baseos]
+name=Rocky Linux 9 BaseOS (BNC Qt5 deps)
+baseurl=https://download.rockylinux.org/pub/rocky/9/BaseOS/x86_64/os/
+enabled=1
+gpgcheck=0
+
+[bnc-qt5-rocky-appstream]
+name=Rocky Linux 9 AppStream (BNC Qt5 deps)
+baseurl=https://download.rockylinux.org/pub/rocky/9/AppStream/x86_64/os/
+enabled=1
+gpgcheck=0
+EOF
+    sudo dnf install -y \
+        --disablerepo="*" \
+        --enablerepo=bnc-qt5-rocky-baseos,bnc-qt5-rocky-appstream \
+        --exclude="*.i686" \
+        qt5-qtbase qt5-qtsvg qt5-qtbase-gui
+    sudo ldconfig
+}
+
+install_qt5_runtime() {
+    local bnc_bin="$1"
+
+    if ! bnc_missing_qt_libs "$bnc_bin"; then
+        return 0
+    fi
+
+    echo "Installing Qt5 runtime dependencies for BNC..."
+
+    if command -v apt-get &>/dev/null; then
+        sudo apt-get update
+        sudo apt-get install -y libqt5core5a libqt5network5 libqt5gui5 libqt5widgets5 libqt5svg5 2>/dev/null || \
+        sudo apt-get install -y libqt5core5t64 libqt5network5t64 libqt5gui5t64 libqt5widgets5t64 libqt5svg5t64 2>/dev/null || \
+        sudo apt-get install -y qtbase5-dev 2>/dev/null
+    elif command -v dnf &>/dev/null || command -v yum &>/dev/null; then
+        local pkg_mgr="dnf"
+        command -v dnf &>/dev/null || pkg_mgr="yum"
+        if is_amazon_linux_2023; then
+            install_qt5_from_rocky9_repos
+        elif ! sudo "$pkg_mgr" install -y qt5-qtbase qt5-qtsvg qt5-qtbase-gui; then
+            echo "Standard Qt5 packages unavailable; trying Rocky Linux 9 repositories..."
+            install_qt5_from_rocky9_repos
+        fi
+        sudo ldconfig
+    elif command -v zypper &>/dev/null; then
+        sudo zypper install -y libQt5Core5 libQt5Network5 libQt5Gui5 libQt5Widgets5 libQt5Svg5 2>/dev/null || \
+        sudo zypper install -y libqt5-qtbase libqt5-qtsvg 2>/dev/null
+    elif command -v pacman &>/dev/null; then
+        sudo pacman -Sy --noconfirm qt5-base qt5-svg
+    elif command -v apk &>/dev/null; then
+        sudo apk add qt5-qtbase qt5-qtsvg
+    else
+        echo "Error: Could not install Qt5 runtime libraries automatically."
+        echo "Install Qt5 manually, then re-run this script."
+        exit 1
+    fi
+
+    if bnc_missing_qt_libs "$bnc_bin"; then
+        echo "Error: Qt5 libraries are still missing after installation."
+        ldd "$bnc_bin" 2>/dev/null | grep 'not found' || true
+        exit 1
     fi
 }
 
@@ -109,13 +200,13 @@ get_download_url() {
 }
 
 install_bnc() {
-    if command -v bnc &>/dev/null; then
+    if command -v bnc &>/dev/null && bnc --help &>/dev/null; then
         echo "BNC is already installed. Skipping installation."
         echo "Location: $(command -v bnc)"
         exit 0
     fi
 
-    if [ -f "${INSTALL_PREFIX}/bin/bnc" ]; then
+    if [ -f "${INSTALL_PREFIX}/bin/bnc" ] && "${INSTALL_PREFIX}/bin/bnc" --help &>/dev/null; then
         echo "BNC is already installed at ${INSTALL_PREFIX}/bin/bnc. Skipping."
         exit 0
     fi
@@ -134,7 +225,7 @@ install_bnc() {
     local archive="$TMP_DIR/bnc.zip"
 
     if command -v curl &>/dev/null; then
-        curl -fL --progress-bar -o "$archive" "$url" || { echo "Error: Failed to download BNC from $url"; exit 1; }
+        curl -fsSL -o "$archive" "$url" || { echo "Error: Failed to download BNC from $url"; exit 1; }
     else
         wget --progress=bar:force -O "$archive" "$url" || { echo "Error: Failed to download BNC from $url"; exit 1; }
     fi
@@ -176,35 +267,18 @@ install_bnc() {
         exit 1
     fi
 
-    # Install Qt5 shared libraries if needed (Linux shared builds require Qt5)
     if [ "$PLATFORM" = "linux" ]; then
-        if ! ldconfig -p 2>/dev/null | grep -q libQt5Core; then
-            echo "Installing Qt5 runtime dependencies..."
-            if command -v apt-get &>/dev/null; then
-                sudo apt-get update
-                sudo apt-get install -y libqt5core5a libqt5network5 libqt5gui5 2>/dev/null || \
-                sudo apt-get install -y libqt5core5t64 libqt5network5t64 libqt5gui5t64 2>/dev/null || \
-                sudo apt-get install -y qtbase5-dev 2>/dev/null || true
-            elif command -v dnf &>/dev/null; then
-                sudo dnf install -y qt5-qtbase 2>/dev/null || \
-                sudo dnf install -y libQt5Core 2>/dev/null || true
-            elif command -v yum &>/dev/null; then
-                sudo yum install -y qt5-qtbase 2>/dev/null || true
-            elif command -v zypper &>/dev/null; then
-                sudo zypper install -y libQt5Core5 libQt5Network5 libQt5Gui5 2>/dev/null || \
-                sudo zypper install -y libqt5-qtbase 2>/dev/null || true
-            elif command -v pacman &>/dev/null; then
-                sudo pacman -Sy --noconfirm qt5-base 2>/dev/null || true
-            elif command -v apk &>/dev/null; then
-                sudo apk add qt5-qtbase 2>/dev/null || true
-            else
-                echo "Warning: Qt5 libraries may be required. Install them manually if BNC fails to run."
-            fi
-        fi
+        install_qt5_runtime "$bnc_bin"
     fi
 
     echo "Installing BNC to ${INSTALL_PREFIX}/bin..."
     sudo install -m 755 "$bnc_bin" "${INSTALL_PREFIX}/bin/bnc"
+
+    if ! bnc --help &>/dev/null; then
+        echo "Error: BNC installed but failed to run. Check missing libraries with:"
+        echo "  ldd ${INSTALL_PREFIX}/bin/bnc"
+        exit 1
+    fi
 
     if ! command -v bnc &>/dev/null; then
         echo "BNC installed to ${INSTALL_PREFIX}/bin/bnc. Ensure ${INSTALL_PREFIX}/bin is in your PATH."
