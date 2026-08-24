@@ -160,13 +160,23 @@ install_bnc() {
 
     unzip -o "$archive" -d "$TMP_DIR/bnc"
 
-    # Find the bnc binary in extracted contents
+    # Find the bnc binary in extracted contents (binary name includes version, e.g. bnc-2.13.6)
     local bnc_bin
-    bnc_bin=$(find "$TMP_DIR/bnc" -name "bnc" -type f -perm /111 2>/dev/null | head -n 1)
+    bnc_bin=$(find "$TMP_DIR/bnc" -name "bnc-*" -type f -perm /111 2>/dev/null | grep -v '\.md\|\.txt\|\.bnc\|\.sh\|\.zip' | head -n 1)
 
     if [ -z "$bnc_bin" ]; then
-        # Try without executable permission check
-        bnc_bin=$(find "$TMP_DIR/bnc" -name "bnc" -type f 2>/dev/null | head -n 1)
+        # Try matching the versioned binary without executable permission check
+        bnc_bin=$(find "$TMP_DIR/bnc" -name "bnc-${BNC_VERSION}" -type f 2>/dev/null | head -n 1)
+    fi
+
+    if [ -z "$bnc_bin" ]; then
+        # Last resort: look for any ELF binary
+        bnc_bin=$(find "$TMP_DIR/bnc" -maxdepth 1 -type f 2>/dev/null | while read -r f; do
+            if file "$f" 2>/dev/null | grep -q "ELF\|Mach-O\|executable"; then
+                echo "$f"
+                break
+            fi
+        done)
     fi
 
     if [ -z "$bnc_bin" ]; then
