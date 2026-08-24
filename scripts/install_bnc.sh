@@ -160,29 +160,19 @@ install_bnc() {
 
     unzip -o "$archive" -d "$TMP_DIR/bnc"
 
-    # Find the bnc binary in extracted contents (binary name includes version, e.g. bnc-2.13.6)
+    # Find the bnc binary (named bnc-<version> in the archive)
     local bnc_bin
-    bnc_bin=$(find "$TMP_DIR/bnc" -name "bnc-*" -type f -perm /111 2>/dev/null | grep -v '\.md\|\.txt\|\.bnc\|\.sh\|\.zip' | head -n 1)
+    bnc_bin="$TMP_DIR/bnc/bnc-${BNC_VERSION}"
 
-    if [ -z "$bnc_bin" ]; then
-        # Try matching the versioned binary without executable permission check
-        bnc_bin=$(find "$TMP_DIR/bnc" -name "bnc-${BNC_VERSION}" -type f 2>/dev/null | head -n 1)
+    if [ ! -f "$bnc_bin" ]; then
+        # Fallback: search for any file starting with bnc- that is not a doc/config
+        bnc_bin=$(find "$TMP_DIR/bnc" -maxdepth 1 -type f -name "bnc-*" ! -name "*.md" ! -name "*.txt" ! -name "*.zip" 2>/dev/null | head -n 1)
     fi
 
-    if [ -z "$bnc_bin" ]; then
-        # Last resort: look for any ELF binary
-        bnc_bin=$(find "$TMP_DIR/bnc" -maxdepth 1 -type f 2>/dev/null | while read -r f; do
-            if file "$f" 2>/dev/null | grep -q "ELF\|Mach-O\|executable"; then
-                echo "$f"
-                break
-            fi
-        done)
-    fi
-
-    if [ -z "$bnc_bin" ]; then
+    if [ -z "$bnc_bin" ] || [ ! -f "$bnc_bin" ]; then
         echo "Error: Could not find BNC binary in downloaded archive."
         echo "Contents of archive:"
-        find "$TMP_DIR/bnc" -type f | head -20
+        find "$TMP_DIR/bnc" -maxdepth 1 -type f | head -20
         exit 1
     fi
 
@@ -190,16 +180,23 @@ install_bnc() {
     if [ "$PLATFORM" = "linux" ]; then
         if ! ldconfig -p 2>/dev/null | grep -q libQt5Core; then
             echo "Installing Qt5 runtime dependencies..."
-            if command -v apt &>/dev/null; then
-                sudo apt-get update && sudo apt-get install -y libqt5core5a libqt5network5 libqt5gui5
+            if command -v apt-get &>/dev/null; then
+                sudo apt-get update
+                sudo apt-get install -y libqt5core5a libqt5network5 libqt5gui5 2>/dev/null || \
+                sudo apt-get install -y libqt5core5t64 libqt5network5t64 libqt5gui5t64 2>/dev/null || \
+                sudo apt-get install -y qtbase5-dev 2>/dev/null || true
             elif command -v dnf &>/dev/null; then
-                sudo dnf install -y qt5-qtbase qt5-qtbase-gui
+                sudo dnf install -y qt5-qtbase 2>/dev/null || \
+                sudo dnf install -y libQt5Core 2>/dev/null || true
             elif command -v yum &>/dev/null; then
-                sudo yum install -y qt5-qtbase qt5-qtbase-gui
+                sudo yum install -y qt5-qtbase 2>/dev/null || true
             elif command -v zypper &>/dev/null; then
-                sudo zypper install -y libQt5Core5 libQt5Network5 libQt5Gui5
+                sudo zypper install -y libQt5Core5 libQt5Network5 libQt5Gui5 2>/dev/null || \
+                sudo zypper install -y libqt5-qtbase 2>/dev/null || true
             elif command -v pacman &>/dev/null; then
-                sudo pacman -Sy --noconfirm qt5-base
+                sudo pacman -Sy --noconfirm qt5-base 2>/dev/null || true
+            elif command -v apk &>/dev/null; then
+                sudo apk add qt5-qtbase 2>/dev/null || true
             else
                 echo "Warning: Qt5 libraries may be required. Install them manually if BNC fails to run."
             fi
