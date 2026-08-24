@@ -120,8 +120,9 @@ The script downloads the prebuilt BNC binary:
    - Try running with full path: `/usr/local/bin/bnc --help`
 
 4. **Permission denied**:
-   - The script requires sudo for installing to `/usr/local/bin`
-   - Alternatively, set `BNC_PREFIX=$HOME/.local` to install without sudo
+   - Installing to `/usr/local/bin` needs write access (sudo when required)
+   - For a user install without sudo: `BNC_PREFIX=$HOME/.local ./install_bnc.sh install`
+   - The script only uses sudo when the target path is not writable
 
 5. **Qt5 libraries missing** (common on Amazon Linux 2023):
    - BNC shared builds require Qt5 (`libQt5Core`, `libQt5Gui`, `libQt5Svg`, etc.)
