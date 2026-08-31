@@ -20,6 +20,7 @@ Command-line interface tools/scripts
 - [install_hey.sh](docs/install_hey.md)
 - [install_k9s.sh](docs/install_k9s.md)
 - [install_kafka.sh](docs/install_kafka.md)
+- [install_kiro.sh](docs/install_kiro.md)
 - [install_kustomize.sh](docs/install_kustomize.md)
 - [install_kubectl.sh](docs/install_kubectl.md)
 - [install_lm_studio.sh](docs/install_lm_studio.md)
@@ -70,6 +71,7 @@ Refer to the respective files for detailed usage instructions:
 - **[install_hey.sh](docs/install_hey.md)**: Install or uninstall [hey](https://github.com/rakyll/hey) (HTTP load generator) from official prebuilt binaries or `go install` on arm64.
 - **[install_k9s.sh](docs/install_k9s.md)**: Install or uninstall k9s, a terminal UI for Kubernetes, on Linux and macOS.
 - **[install_kafka.sh](docs/install_kafka.md)**: Install or uninstall Apache Kafka on a Linux system.
+- **[install_kiro.sh](docs/install_kiro.md)**: Install or uninstall the Kiro IDE (and optional CLI) on Linux x64 and macOS from official downloads.
 - **[install_kustomize.sh](docs/install_kustomize.md)**: Install or uninstall Kustomize (Kubernetes configuration management) on Linux and macOS from official GitHub releases.
 - **[install_kubectl.sh](docs/install_kubectl.md)**: Install or uninstall `kubectl` on a Linux system.
 - **[install_lm_studio.sh](docs/install_lm_studio.md)**: Install or uninstall LM Studio for running large language models locally with headless API server support.
